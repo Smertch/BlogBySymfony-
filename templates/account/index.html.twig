@@ -1,0 +1,7 @@
+
+<h2>Welcome {{ app.user.name }}</h2>
+<br>
+<form method="post" action="{{ path('logout') }}">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+    <button type="submit">Logout</button>
+</form>

@@ -1,0 +1,22 @@
+{% extends 'layouts/default.html.twig' %}
+
+{% block title %}Home page{% endblock %}
+
+{% block content %}
+    <div class="conteiner my-5">
+        <h1>Posts</h1>
+
+        {% for post in posts %}
+            <div class="mb3">
+                <h3>{{ post.title }}</h3>
+                Autor: {{ post.user ? post.user.name : '...' }}
+
+                | <a href="#" class="text-primary">Edit</a>
+                | <a href="#" class="text-danger">Delete</a>
+
+            </div>
+        {% else %}
+            <p>No posts ...</p>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,23 @@
+<div>
+    {% set errors_bag = errors_bag|default(false) %}
+    {% if errors_bag %}
+        <strong>Whoops!</strong> There were some problems with your input.
+        <ul>
+            {% for error in errors_bag %}
+                <li><strong style="color: red;">{{ error }}</strong></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+
+{% for label, messages in app.flashes(['success', 'status', 'error']) %}
+    {% for message in messages %}
+        {% if label == 'success' %}
+            <strong style="color: green;">{{ message }}</strong>
+        {% elseif label == 'status' %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% elseif label == 'error' %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endif %}
+    {% endfor %}
+{% endfor %}

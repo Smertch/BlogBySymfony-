@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'registration_welcome_heading'|trans({}, 'auth') }}</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background: #f4f6f8; padding: 24px;">
+    <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 8px; padding: 32px; border: 1px solid #e5e7eb;">
+        <h1 style="margin: 0 0 16px; font-size: 24px; color: #0f172a;">
+            {{ 'registration_welcome_heading'|trans({}, 'auth') }}
+        </h1>
+
+        <p style="margin: 0 0 16px; color: #334155; line-height: 1.6;">
+            {{ 'registration_welcome_body'|trans({ 'name': user.name, 'app': app_name }, 'auth') }}
+        </p>
+
+        <p style="text-align: center; margin: 24px 0;">
+            <a href="{{ url('home') }}"
+               style="display: inline-block; padding: 12px 24px; background: #1e9b6e; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                {{ 'registration_welcome_button'|trans({}, 'auth') }}
+            </a>
+        </p>
+
+        <p style="margin: 0; color: #64748b; font-size: 14px;">
+            {{ 'registration_welcome_footer'|trans({ 'app': app_name }, 'auth') }}
+        </p>
+    </div>
+</body>
+</html>

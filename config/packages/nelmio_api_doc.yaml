@@ -1,0 +1,19 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: '%env(APP_NAME)% API'
+            description: 'API documentation'
+            version: '1.0.0'
+        servers:
+            - url: '%env(APP_URL)%'
+              description: 'Current'
+        components:
+            securitySchemes:
+                ApiToken:
+                    type: apiKey
+                    in: header
+                    name: Authorization
+                    description: 'Bearer token (Symfony API token)'
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)

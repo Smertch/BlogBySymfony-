@@ -1,0 +1,9 @@
+scheb_two_factor:
+    security_tokens:
+        - Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken
+    google:
+        enabled: true
+        server_name: '%env(APP_NAME)%'
+        issuer: '%env(APP_NAME)%'
+        digits: 6
+        window: 1

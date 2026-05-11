@@ -1,0 +1,136 @@
+name: blogbysymfony
+
+services:
+    mailhog:
+        image: 'mailhog/mailhog:latest'
+        ports:
+            - '1526:8025'
+
+    redis:
+        image: 'redis:alpine'
+
+    postgres:
+        image: 'postgres:16-alpine'
+        environment:
+            POSTGRES_DB: blog
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
+        volumes:
+            - blogbysymfony_postgres_data:/var/lib/postgresql/data
+        ports:
+            - '1527:5432'
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U user -d blog']
+            interval: 5s
+            timeout: 5s
+            retries: 12
+            start_period: 30s
+
+    kafka:
+        image: 'bitnami/kafka:3.7'
+        ports:
+            # PLAINTEXT_HOST listener: clients on the host use localhost:1529
+            - '1529:9094'
+        environment:
+            # KRaft mode (no Zookeeper)
+            KAFKA_CFG_NODE_ID: '0'
+            KAFKA_CFG_PROCESS_ROLES: 'controller,broker'
+            KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: '0@kafka:9093'
+            KAFKA_CFG_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094'
+            KAFKA_CFG_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,EXTERNAL://localhost:1529'
+            KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
+            KAFKA_CFG_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+            KAFKA_CFG_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+            KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: 'true'
+            ALLOW_PLAINTEXT_LISTENER: 'yes'
+        volumes:
+            - blogbysymfony_kafka_data:/bitnami/kafka
+        healthcheck:
+            test: ['CMD-SHELL', 'kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null']
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
+
+    kafka-ui:
+        image: 'provectuslabs/kafka-ui:latest'
+        ports:
+            - '1530:8080'
+        environment:
+            KAFKA_CLUSTERS_0_NAME: blog-cluster
+            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:9092'
+        depends_on:
+            kafka:
+                condition: service_healthy
+
+    webserver:
+        build: docker/nginx
+        image: blogbysymfony-nginx
+        pull_policy: never
+        working_dir: /application
+        depends_on:
+            - php-fpm
+        volumes:
+            - '.:/application'
+        ports:
+            - '1525:80'
+
+    php-fpm:
+        build: docker/php-fpm
+        image: blogbysymfony-php-fpm
+        pull_policy: never
+        working_dir: /application
+        environment:
+            APP_ENV: dev
+            APP_DEBUG: '1'
+            APP_NAME: Symfony
+            APP_URL: 'http://localhost:1525'
+            APP_LOCALE: en
+            APP_FALLBACK_LOCALE: en
+            DATABASE_URL: 'postgresql://user:password@postgres:5432/blog?serverVersion=16&charset=utf8'
+            MAILER_DSN: 'smtp://mailhog:1025'
+            MAIL_FROM_ADDRESS: 'hello@example.com'
+            MAIL_FROM_NAME: 'Blog'
+            MESSENGER_TRANSPORT_DSN: 'kafka://kafka:9092?topic=messages&group_id=blog&auto_offset_reset=earliest'
+            REDIS_URL: 'redis://redis:6379'
+        depends_on:
+            postgres:
+                condition: service_healthy
+            kafka:
+                condition: service_healthy
+        volumes:
+            - '.:/application'
+            - './docker/php-fpm/php-ini-overrides.ini:/usr/local/etc/php/conf.d/99-overrides.ini'
+
+    queue-worker:
+        build: docker/php-fpm
+        image: blogbysymfony-php-fpm
+        pull_policy: never
+        working_dir: /application
+        command: ['php', 'bin/console', 'messenger:consume', 'async', '-vv', '--time-limit=3600']
+        restart: unless-stopped
+        environment:
+            APP_ENV: dev
+            APP_DEBUG: '1'
+            APP_NAME: Symfony
+            APP_URL: 'http://localhost:1525'
+            APP_LOCALE: en
+            APP_FALLBACK_LOCALE: en
+            DATABASE_URL: 'postgresql://user:password@postgres:5432/blog?serverVersion=16&charset=utf8'
+            MAILER_DSN: 'smtp://mailhog:1025'
+            MAIL_FROM_ADDRESS: 'hello@example.com'
+            MAIL_FROM_NAME: 'Blog'
+            MESSENGER_TRANSPORT_DSN: 'kafka://kafka:9092?topic=messages&group_id=blog&auto_offset_reset=earliest'
+            REDIS_URL: 'redis://redis:6379'
+        depends_on:
+            postgres:
+                condition: service_healthy
+            kafka:
+                condition: service_healthy
+        volumes:
+            - '.:/application'
+            - './docker/php-fpm/php-ini-overrides.ini:/usr/local/etc/php/conf.d/99-overrides.ini'
+
+volumes:
+    blogbysymfony_postgres_data:
+    blogbysymfony_kafka_data:

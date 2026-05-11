@@ -1,0 +1,27 @@
+{% extends 'layouts/auth.html.twig' %}
+
+{% block content %}
+    <div class="form-wrapper">
+        <div class="form-title">
+            <i class="fas fa-shield-alt"></i> Two-factor authentication
+        </div>
+        <p class="text-muted small mb-4">
+            Enter the 6-digit code from your authenticator app.
+        </p>
+
+        <form action="{{ path('2fa_login_check') }}" method="post">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('two_factor_authenticate') }}">
+
+            <div class="mb-4 input-icon-wrapper">
+                <i class="fas fa-key"></i>
+                <input type="text" name="_auth_code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" class="form-control" placeholder="123 456" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Verify <i class="fas fa-arrow-right ms-2"></i></button>
+        </form>
+
+        <div class="extra-links d-flex justify-content-between mt-4">
+            <a href="{{ path('logout') }}">Cancel</a>
+        </div>
+    </div>
+{% endblock %}
