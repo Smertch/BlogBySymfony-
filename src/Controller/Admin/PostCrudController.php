@@ -6,8 +6,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\Post;
 use App\Repository\PostRepository;
-use App\Util\AdminPagination;
 use App\Service\SiteUiTranslator;
+use App\Util\AdminPagination;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -78,7 +78,7 @@ final class PostCrudController extends AbstractCrudController
         $perPage = 10;
 
         $result = $this->postRepository->searchPaginated(
-            $query !== '' ? $query : null,
+            '' !== $query ? $query : null,
             $page,
             $perPage,
         );

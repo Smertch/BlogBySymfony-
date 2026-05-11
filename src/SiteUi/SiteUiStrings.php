@@ -18,7 +18,7 @@ final class SiteUiStrings
     public static function text(SiteLanguage $language, string $alias): string
     {
         $english = SiteUiDefaults::ALIASES[$alias] ?? $alias;
-        if ($language === SiteLanguage::EN) {
+        if (SiteLanguage::EN === $language) {
             return $english;
         }
 
@@ -38,7 +38,7 @@ final class SiteUiStrings
             SiteLanguage::UA => 'ua',
             default => '',
         };
-        if ($code === '') {
+        if ('' === $code) {
             return [];
         }
         if (!isset(self::$localeMaps[$code])) {

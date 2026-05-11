@@ -12,7 +12,7 @@ require dirname(__DIR__).'/vendor/autoload.php';
 $kernel = new Kernel('test', true);
 $kernel->boot();
 
-/** @var \Doctrine\ORM\EntityManagerInterface $em */
+/** @var Doctrine\ORM\EntityManagerInterface $em */
 $em = $kernel->getContainer()->get('doctrine')->getManager();
 
 return $em;

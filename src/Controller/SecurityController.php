@@ -14,6 +14,7 @@ use App\Repository\PasswordResetTokenRepository;
 use App\Repository\UserRepository;
 use App\Service\SiteUiTranslator;
 use App\SiteUi\SiteLanguagePreference;
+use LogicException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -55,13 +56,13 @@ final class SecurityController extends AbstractController
     #[Route(path: '/login', name: 'login.store', methods: ['POST'])]
     public function loginStore(): Response
     {
-        throw new \LogicException('This method is intercepted by the form_login authenticator in security.yaml.');
+        throw new LogicException('This method is intercepted by the form_login authenticator in security.yaml.');
     }
 
     #[Route(path: '/logout', name: 'logout', methods: ['POST', 'GET'])]
     public function logout(): never
     {
-        throw new \LogicException('Intercepted by the logout listener in security.yaml.');
+        throw new LogicException('Intercepted by the logout listener in security.yaml.');
     }
 
     #[Route(path: '/register', name: 'register', methods: ['GET'])]
@@ -95,7 +96,7 @@ final class SecurityController extends AbstractController
         }
 
         $data = $form->getData();
-        if ($users->findByEmail((string) $data['email']) !== null) {
+        if (null !== $users->findByEmail((string) $data['email'])) {
             $this->addFlash('error', $this->siteUi->trans('flash.email_taken'));
 
             return $this->redirectToRoute('register');
@@ -109,7 +110,7 @@ final class SecurityController extends AbstractController
         $guestLangRaw = $request->getSession()->get(SiteLanguagePreference::SESSION_KEY);
         if (\is_string($guestLangRaw)) {
             $guestLang = SiteLanguage::tryFrom(strtoupper(trim($guestLangRaw)));
-            if ($guestLang !== null) {
+            if (null !== $guestLang) {
                 $user->setSiteLanguage($guestLang);
             }
         }
@@ -117,7 +118,7 @@ final class SecurityController extends AbstractController
         $users->save($user);
 
         $userId = $user->getId();
-        if ($userId !== null) {
+        if (null !== $userId) {
             $bus->dispatch(new RegistrationWelcomeMail($userId));
         }
 
@@ -156,9 +157,9 @@ final class SecurityController extends AbstractController
         $email = (string) $form->get('email')->getData();
         $user = $users->findByEmail($email);
 
-        if ($user !== null) {
+        if (null !== $user) {
             $rawToken = bin2hex(random_bytes(32));
-            $tokens->upsert($email, password_hash($rawToken, PASSWORD_BCRYPT));
+            $tokens->upsert($email, password_hash($rawToken, \PASSWORD_BCRYPT));
 
             $resetUrl = $this->generateUrl(
                 'password.reset',
@@ -223,14 +224,14 @@ final class SecurityController extends AbstractController
         $rawToken = (string) $data['token'];
 
         $row = $tokens->findByEmail($email);
-        if ($row === null || !password_verify($rawToken, $row->getToken())) {
+        if (null === $row || !password_verify($rawToken, $row->getToken())) {
             $this->addFlash('error', $this->siteUi->trans('flash.password_reset_invalid_token'));
 
             return $this->redirectToRoute('login');
         }
 
         $user = $users->findByEmail($email);
-        if ($user === null) {
+        if (null === $user) {
             $this->addFlash('error', $this->siteUi->trans('flash.user_not_found'));
 
             return $this->redirectToRoute('login');
@@ -255,6 +256,6 @@ final class SecurityController extends AbstractController
     #[Route(path: '/2fa_check', name: '2fa_login_check', methods: ['POST'])]
     public function twoFactorCheck(): never
     {
-        throw new \LogicException('Intercepted by the two_factor firewall listener.');
+        throw new LogicException('Intercepted by the two_factor firewall listener.');
     }
 }

@@ -6,6 +6,7 @@ namespace App\Tests\Functional;
 
 use App\Entity\User;
 use App\Enum\UserRole;
+use LogicException;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Form;
 use Symfony\Component\HttpFoundation\Response;
@@ -384,6 +385,6 @@ final class UserManagementTest extends FunctionalTestCase
             }
         }
 
-        throw new \LogicException('Unknown UserRole '.$role->name);
+        throw new LogicException('Unknown UserRole '.$role->name);
     }
 }

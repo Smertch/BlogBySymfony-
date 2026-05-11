@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App;
 
+use ReflectionException;
+use ReflectionProperty;
+use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Kernel as HttpKernel;
+use Throwable;
 
 /**
  * Ensures var/cache/<env>, var/log and the effective kernel build directory exist and are writable.
@@ -31,7 +35,7 @@ final class RuntimeDirs
 
         try {
             $fs->chmod($buildDir, 0777);
-        } catch (\Throwable) {
+        } catch (Throwable) {
         }
 
         self::assertWritable($buildDir);
@@ -40,14 +44,14 @@ final class RuntimeDirs
     private static function readWarmupDir(HttpKernel $kernel): ?string
     {
         try {
-            $property = new \ReflectionProperty(HttpKernel::class, 'warmupDir');
+            $property = new ReflectionProperty(HttpKernel::class, 'warmupDir');
             $property->setAccessible(true);
 
             /** @var string|null $value */
             $value = $property->getValue($kernel);
 
             return $value ?: null;
-        } catch (\ReflectionException) {
+        } catch (ReflectionException) {
             return null;
         }
     }
@@ -55,15 +59,12 @@ final class RuntimeDirs
     private static function assertWritable(string $dir): void
     {
         if (!is_dir($dir)) {
-            throw new \RuntimeException(sprintf('Expected cache/build directory "%s" is missing after mkdir.', $dir));
+            throw new RuntimeException(\sprintf('Expected cache/build directory "%s" is missing after mkdir.', $dir));
         }
 
         $probe = $dir.'/._symfony_write_probe_'.bin2hex(random_bytes(4));
         if (false === @file_put_contents($probe, 'ok')) {
-            throw new \RuntimeException(sprintf(
-                'Cannot write into "%s". On Docker bind mounts run as root in entrypoint: chown -R www-data:www-data var && chmod -R a+rwX var',
-                $dir
-            ));
+            throw new RuntimeException(\sprintf('Cannot write into "%s". On Docker bind mounts run as root in entrypoint: chown -R www-data:www-data var && chmod -R a+rwX var', $dir));
         }
 
         @unlink($probe);
@@ -87,10 +88,7 @@ final class RuntimeDirs
             }
 
             if (file_exists($dir)) {
-                throw new \RuntimeException(sprintf(
-                    'Cannot create directory "%s": a non-directory file already exists at this path.',
-                    $dir
-                ));
+                throw new RuntimeException(\sprintf('Cannot create directory "%s": a non-directory file already exists at this path.', $dir));
             }
 
             $fs->mkdir($dir, 0777);

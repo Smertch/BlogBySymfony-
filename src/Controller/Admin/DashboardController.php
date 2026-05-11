@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Repository\PostRepository;
 use App\Repository\UserRepository;
 use App\Service\SiteUiTranslator;
+use DateTimeImmutable;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -35,7 +36,7 @@ class DashboardController extends AbstractDashboardController
 
     public function index(): Response
     {
-        $weekAgo = new \DateTimeImmutable('-7 days');
+        $weekAgo = new DateTimeImmutable('-7 days');
 
         $urls = [
             'users_index' => $this->adminUrlGenerator

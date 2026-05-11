@@ -36,7 +36,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator implements Authe
     public function authenticate(Request $request): Passport
     {
         $token = trim(substr((string) $request->headers->get('Authorization'), 7));
-        if ($token === '') {
+        if ('' === $token) {
             throw new CustomUserMessageAuthenticationException('Empty bearer token');
         }
 
@@ -46,11 +46,11 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator implements Authe
         }
 
         $user = $this->users->find((int) $userId);
-        if ($user === null) {
+        if (null === $user) {
             throw new CustomUserMessageAuthenticationException('Invalid token');
         }
 
-        return new SelfValidatingPassport(new UserBadge($user->getUserIdentifier(), fn () => $user));
+        return new SelfValidatingPassport(new UserBadge($user->getUserIdentifier(), static fn () => $user));
     }
 
     public function onAuthenticationSuccess(Request $request, $token, string $firewallName): ?Response

@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Post;
 use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
@@ -76,7 +77,7 @@ class PostRepository extends ServiceEntityRepository
             ->addOrderBy('c.createdAt', 'DESC')
             ->setMaxResults($limit);
 
-        if ($query !== null && $query !== '') {
+        if (null !== $query && '' !== $query) {
             $qb->andWhere('LOWER(p.title) LIKE :q OR LOWER(p.content) LIKE :q')
                 ->setParameter('q', '%'.mb_strtolower($query).'%');
         }
@@ -92,7 +93,7 @@ class PostRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countCreatedSince(\DateTimeImmutable $since): int
+    public function countCreatedSince(DateTimeImmutable $since): int
     {
         return (int) $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
@@ -113,7 +114,7 @@ class PostRepository extends ServiceEntityRepository
             ->leftJoin('p.user', 'u')
             ->addSelect('u');
 
-        if ($query !== null && $query !== '') {
+        if (null !== $query && '' !== $query) {
             $qb->andWhere('LOWER(p.title) LIKE :q OR LOWER(u.name) LIKE :q')
                 ->setParameter('q', '%'.mb_strtolower($query).'%');
         }
@@ -138,7 +139,7 @@ class PostRepository extends ServiceEntityRepository
     public function deleteByIds(array $ids): int
     {
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn (int $id) => $id > 0)));
-        if ($ids === []) {
+        if ([] === $ids) {
             return 0;
         }
 

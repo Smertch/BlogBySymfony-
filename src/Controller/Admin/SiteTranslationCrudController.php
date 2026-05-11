@@ -7,8 +7,8 @@ namespace App\Controller\Admin;
 use App\Entity\SiteTranslation;
 use App\Enum\SiteLanguage;
 use App\Repository\SiteTranslationRepository;
-use App\Util\AdminPagination;
 use App\Service\SiteUiTranslator;
+use App\Util\AdminPagination;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -17,12 +17,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -71,7 +72,7 @@ final class SiteTranslationCrudController extends AbstractCrudController
         $perPage = 20;
 
         $result = $this->siteTranslations->searchPaginated(
-            $query !== '' ? $query : null,
+            '' !== $query ? $query : null,
             $langFilter,
             $page,
             $perPage,
@@ -109,12 +110,12 @@ final class SiteTranslationCrudController extends AbstractCrudController
             ->setAction(Crud::PAGE_INDEX)
             ->generateUrl();
 
-        $first = $total === 0 ? 0 : (($page - 1) * $perPage) + 1;
+        $first = 0 === $total ? 0 : (($page - 1) * $perPage) + 1;
         $last = min($page * $perPage, $total);
 
         $metaTitle = $this->siteUi->trans('admin.translations.title')
-            . ' · '
-            . $this->siteUi->trans('admin.nav.blog_admin');
+            .' · '
+            .$this->siteUi->trans('admin.nav.blog_admin');
 
         return $this->render('admin/translations/index.html.twig', [
             'sidebar_nav' => 'translations',
@@ -152,8 +153,8 @@ final class SiteTranslationCrudController extends AbstractCrudController
         $rows = $this->siteTranslations->findBy([], ['alias' => 'ASC', 'languageType' => 'ASC']);
 
         $fh = fopen('php://temp', 'r+');
-        if ($fh === false) {
-            throw new \RuntimeException('Cannot open temp stream.');
+        if (false === $fh) {
+            throw new RuntimeException('Cannot open temp stream.');
         }
 
         fputcsv($fh, ['id', 'alias', 'language', 'translate']);

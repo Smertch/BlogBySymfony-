@@ -32,7 +32,7 @@ final readonly class RegistrationWelcomeMailHandler
     public function __invoke(RegistrationWelcomeMail $message): void
     {
         $user = $this->users->find($message->userId);
-        if ($user === null) {
+        if (null === $user) {
             return;
         }
 

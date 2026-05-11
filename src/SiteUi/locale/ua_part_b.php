@@ -125,4 +125,3 @@ return [
     'layout.nav.login' => 'Вхід',
     'layout.nav.create_post' => 'Створити пост',
 ];
-

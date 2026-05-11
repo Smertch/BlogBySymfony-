@@ -16,7 +16,7 @@ final class UserController extends AbstractController
     #[Route(path: '/api/user', name: 'api_user', methods: ['GET'])]
     public function me(#[CurrentUser] ?User $user, #[MapQueryParameter] ?string $debug = null): JsonResponse
     {
-        if ($user === null) {
+        if (null === $user) {
             return new JsonResponse(['message' => 'Unauthenticated'], 401);
         }
 

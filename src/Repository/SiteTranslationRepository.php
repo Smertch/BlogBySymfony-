@@ -36,7 +36,7 @@ final class SiteTranslationRepository extends ServiceEntityRepository
         $map = [];
         foreach ($rows as $row) {
             $text = trim((string) $row['translate']);
-            if ($text !== '') {
+            if ('' !== $text) {
                 $map[(string) $row['alias']] = $text;
             }
         }
@@ -53,14 +53,14 @@ final class SiteTranslationRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('t');
 
-        if ($query !== null && $query !== '') {
+        if (null !== $query && '' !== $query) {
             $qb->andWhere('LOWER(t.alias) LIKE :q OR LOWER(t.translate) LIKE :q')
                 ->setParameter('q', '%'.mb_strtolower($query).'%');
         }
 
-        if ($languageFilter !== null && $languageFilter !== '' && $languageFilter !== 'all') {
+        if (null !== $languageFilter && '' !== $languageFilter && 'all' !== $languageFilter) {
             $lang = SiteLanguage::tryFrom(strtoupper($languageFilter));
-            if ($lang !== null) {
+            if (null !== $lang) {
                 $qb->andWhere('t.languageType = :lang')->setParameter('lang', $lang);
             }
         }

@@ -26,7 +26,7 @@ class PasswordResetTokenRepository extends ServiceEntityRepository
     public function deleteByEmail(string $email): void
     {
         $token = $this->findByEmail($email);
-        if ($token !== null) {
+        if (null !== $token) {
             $this->getEntityManager()->remove($token);
             $this->getEntityManager()->flush();
         }
@@ -35,7 +35,7 @@ class PasswordResetTokenRepository extends ServiceEntityRepository
     public function upsert(string $email, string $hashedToken): void
     {
         $existing = $this->findByEmail($email);
-        if ($existing !== null) {
+        if (null !== $existing) {
             $existing->setToken($hashedToken);
         } else {
             $this->getEntityManager()->persist(new PasswordResetToken($email, $hashedToken));

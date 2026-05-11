@@ -15,7 +15,7 @@ use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 final readonly class KafkaDsn
 {
     /**
-     * @param list<string>          $brokers
+     * @param list<string> $brokers
      * @param array<string, string> $consumerConfig
      * @param array<string, string> $producerConfig
      */
@@ -38,7 +38,7 @@ final readonly class KafkaDsn
         }
 
         $parsed = parse_url($dsn);
-        if ($parsed === false || !isset($parsed['host'])) {
+        if (false === $parsed || !isset($parsed['host'])) {
             throw new InvalidArgumentException(\sprintf('Invalid Kafka DSN: "%s".', $dsn));
         }
 
@@ -50,9 +50,9 @@ final readonly class KafkaDsn
         $brokers = array_values(array_filter(array_map(
             static fn (string $b): string => trim($b),
             explode(',', $hostPart),
-        ), static fn (string $b): bool => $b !== ''));
+        ), static fn (string $b): bool => '' !== $b));
 
-        if ($brokers === []) {
+        if ([] === $brokers) {
             throw new InvalidArgumentException('Kafka DSN must contain at least one broker host.');
         }
 
@@ -89,6 +89,7 @@ final readonly class KafkaDsn
 
     /**
      * @param array<string, mixed> $query
+     *
      * @return array<string, string>
      */
     private static function extractConfig(array $query, string $prefix): array

@@ -35,14 +35,14 @@ final class SiteUiTranslator implements ResetInterface
         }
 
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null || !$request->hasSession()) {
+        if (null === $request || !$request->hasSession()) {
             return SiteLanguage::EN;
         }
 
         $raw = $request->getSession()->get(SiteLanguagePreference::SESSION_KEY);
         if (\is_string($raw)) {
             $lang = SiteLanguage::tryFrom(strtoupper($raw));
-            if ($lang !== null) {
+            if (null !== $lang) {
                 return $lang;
             }
         }
@@ -56,7 +56,7 @@ final class SiteUiTranslator implements ResetInterface
     public function trans(string $alias, array $params = []): string
     {
         $text = $this->lookup($alias);
-        if ($params === []) {
+        if ([] === $params) {
             return $text;
         }
 
@@ -90,14 +90,14 @@ final class SiteUiTranslator implements ResetInterface
     private function getMap(): array
     {
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null) {
+        if (null === $request) {
             return [];
         }
 
         $lang = $this->getLanguage();
         $langKey = $lang->value;
 
-        if ($this->map !== null && $this->mapForLanguage === $langKey) {
+        if (null !== $this->map && $this->mapForLanguage === $langKey) {
             return $this->map;
         }
 

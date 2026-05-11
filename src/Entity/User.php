@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Enum\SiteLanguage;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -38,7 +39,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
     private SiteLanguage $siteLanguage = SiteLanguage::EN;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $emailVerifiedAt = null;
+    private ?DateTimeImmutable $emailVerifiedAt = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
     private string $password = '';
@@ -50,16 +51,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
     private ?string $twoFactorRecoveryCodes = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    private ?\DateTimeImmutable $twoFactorConfirmedAt = null;
+    private ?DateTimeImmutable $twoFactorConfirmedAt = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
     private ?string $rememberToken = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, Post>
@@ -69,7 +70,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
 
     public function __construct()
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
         $this->posts = new ArrayCollection();
@@ -77,7 +78,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
 
     public function getId(): ?int
     {
-        return $this->id !== null ? (int) $this->id : null;
+        return null !== $this->id ? (int) $this->id : null;
     }
 
     public function getName(): string
@@ -119,12 +120,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
         return $this;
     }
 
-    public function getEmailVerifiedAt(): ?\DateTimeImmutable
+    public function getEmailVerifiedAt(): ?DateTimeImmutable
     {
         return $this->emailVerifiedAt;
     }
 
-    public function setEmailVerifiedAt(?\DateTimeImmutable $value): self
+    public function setEmailVerifiedAt(?DateTimeImmutable $value): self
     {
         $this->emailVerifiedAt = $value;
         $this->touch();
@@ -165,15 +166,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
 
     public function isAdmin(): bool
     {
-        return $this->getRole() === UserRole::Admin;
+        return UserRole::Admin === $this->getRole();
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
@@ -190,12 +191,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
         return $this;
     }
 
-    public function getTwoFactorConfirmedAt(): ?\DateTimeImmutable
+    public function getTwoFactorConfirmedAt(): ?DateTimeImmutable
     {
         return $this->twoFactorConfirmedAt;
     }
 
-    public function setTwoFactorConfirmedAt(?\DateTimeImmutable $value): self
+    public function setTwoFactorConfirmedAt(?DateTimeImmutable $value): self
     {
         $this->twoFactorConfirmedAt = $value;
         $this->touch();
@@ -240,7 +241,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
 
     public function isGoogleAuthenticatorEnabled(): bool
     {
-        return $this->twoFactorSecret !== null && $this->twoFactorConfirmedAt !== null;
+        return null !== $this->twoFactorSecret && null !== $this->twoFactorConfirmedAt;
     }
 
     public function getGoogleAuthenticatorUsername(): string
@@ -263,6 +264,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
 
     public function touch(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 }

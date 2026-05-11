@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\PostRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -30,10 +31,10 @@ class Post
     private ?User $user = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $updatedAt;
+    private DateTimeImmutable $updatedAt;
 
     /**
      * @var Collection<int, Comment>
@@ -50,7 +51,7 @@ class Post
 
     public function __construct()
     {
-        $now = new \DateTimeImmutable();
+        $now = new DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
         $this->comments = new ArrayCollection();
@@ -59,7 +60,7 @@ class Post
 
     public function getId(): ?int
     {
-        return $this->id !== null ? (int) $this->id : null;
+        return null !== $this->id ? (int) $this->id : null;
     }
 
     public function getTitle(): string
@@ -101,19 +102,19 @@ class Post
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): \DateTimeImmutable
+    public function getUpdatedAt(): DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
     public function touch(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new DateTimeImmutable();
     }
 
     /**
@@ -144,7 +145,7 @@ class Post
 
     public function isLikedBy(?User $user): bool
     {
-        if ($user === null) {
+        if (null === $user) {
             return false;
         }
 

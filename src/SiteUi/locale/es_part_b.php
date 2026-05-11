@@ -125,4 +125,3 @@ return [
     'layout.nav.login' => 'Iniciar sesión',
     'layout.nav.create_post' => 'Crear entrada',
 ];
-

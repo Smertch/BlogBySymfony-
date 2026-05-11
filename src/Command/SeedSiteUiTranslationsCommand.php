@@ -32,6 +32,7 @@ final class SeedSiteUiTranslationsCommand extends Command
             'Overwrite existing database texts with the current catalog (use after locale file changes).',
         );
     }
+
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly SiteTranslationRepository $translations,
@@ -55,7 +56,7 @@ final class SeedSiteUiTranslationsCommand extends Command
                     'languageType' => $language,
                 ]);
 
-                if ($existing !== null) {
+                if (null !== $existing) {
                     if ($doUpdate && $existing->getTranslate() !== $text) {
                         $existing->setTranslate($text);
                         ++$updated;

@@ -31,7 +31,7 @@ final class KafkaTransport implements TransportInterface
     ) {
     }
 
-    public function send(\Symfony\Component\Messenger\Envelope $envelope): \Symfony\Component\Messenger\Envelope
+    public function send(Envelope $envelope): Envelope
     {
         $this->ensureRdKafkaExtension();
 
@@ -54,7 +54,7 @@ final class KafkaTransport implements TransportInterface
         $producer->poll(0);
 
         $result = $producer->flush($this->dsn->flushTimeoutMs);
-        if ($result !== \RD_KAFKA_RESP_ERR_NO_ERROR) {
+        if (\RD_KAFKA_RESP_ERR_NO_ERROR !== $result) {
             throw new TransportException(\sprintf('Kafka producer flush failed (rdkafka error code %d).', $result));
         }
 
@@ -92,7 +92,7 @@ final class KafkaTransport implements TransportInterface
         }
     }
 
-    public function ack(\Symfony\Component\Messenger\Envelope $envelope): void
+    public function ack(Envelope $envelope): void
     {
         $stamp = $envelope->last(KafkaReceivedStamp::class);
         if (!$stamp instanceof KafkaReceivedStamp) {
@@ -107,7 +107,7 @@ final class KafkaTransport implements TransportInterface
         }
     }
 
-    public function reject(\Symfony\Component\Messenger\Envelope $envelope): void
+    public function reject(Envelope $envelope): void
     {
         // Commit the offset so the message isn't replayed forever.
         // Wire a DLQ topic via Messenger's `failure_transport` for permanent failures.
@@ -116,7 +116,7 @@ final class KafkaTransport implements TransportInterface
 
     private function getProducer(): object
     {
-        if ($this->producer !== null) {
+        if (null !== $this->producer) {
             return $this->producer;
         }
 
@@ -138,7 +138,7 @@ final class KafkaTransport implements TransportInterface
 
     private function getConsumer(): object
     {
-        if ($this->consumer !== null) {
+        if (null !== $this->consumer) {
             return $this->consumer;
         }
 

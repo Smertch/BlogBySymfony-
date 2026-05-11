@@ -32,7 +32,7 @@ final class LocaleController extends AbstractController
         }
 
         $lang = SiteLanguage::tryFrom(strtoupper(trim((string) $request->request->get('language', ''))));
-        if ($lang === null) {
+        if (null === $lang) {
             return $this->redirectAfterLocaleSwitch($request);
         }
 
@@ -63,9 +63,9 @@ final class LocaleController extends AbstractController
     private function safeTarget(Request $request): string
     {
         $target = (string) ($request->request->get('redirect') ?: '');
-        if ($target === '') {
+        if ('' === $target) {
             $referer = $request->headers->get('Referer');
-            if (\is_string($referer) && $referer !== '') {
+            if (\is_string($referer) && '' !== $referer) {
                 $parts = parse_url($referer);
                 if (\is_array($parts) && isset($parts['path'])) {
                     $path = $parts['path'];

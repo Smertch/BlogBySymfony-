@@ -37,7 +37,7 @@ final class PostController extends AbstractController
     public function index(Request $request): Response
     {
         $query = trim((string) $request->query->get('q', ''));
-        $posts = $this->postRepository->feedSearch($query !== '' ? $query : null, self::FEED_LIMIT);
+        $posts = $this->postRepository->feedSearch('' !== $query ? $query : null, self::FEED_LIMIT);
 
         return $this->render('posts/index.html.twig', [
             'posts' => $posts,
@@ -58,7 +58,7 @@ final class PostController extends AbstractController
         $title = trim((string) $request->request->get('title', ''));
         $content = trim((string) $request->request->get('content', ''));
 
-        if ($title === '') {
+        if ('' === $title) {
             $this->addFlash('error', $this->siteUi->trans('flash.title_empty'));
 
             return $this->redirectToRoute('home');
@@ -92,7 +92,7 @@ final class PostController extends AbstractController
         $title = trim((string) $request->request->get('title', ''));
         $content = trim((string) $request->request->get('content', ''));
 
-        if ($title === '') {
+        if ('' === $title) {
             $this->addFlash('error', $this->siteUi->trans('flash.title_empty'));
 
             return $this->redirectToRoute('home', ['_fragment' => 'post-'.$post->getId()]);
@@ -140,7 +140,7 @@ final class PostController extends AbstractController
         $user = $this->getAppUser();
         $existing = $this->postLikeRepository->findOneByPostAndUser($post, $user);
 
-        if ($existing !== null) {
+        if (null !== $existing) {
             $this->em->remove($existing);
             $this->em->flush();
 
@@ -173,7 +173,7 @@ final class PostController extends AbstractController
         }
 
         $body = trim((string) $request->request->get('body', ''));
-        if ($body === '') {
+        if ('' === $body) {
             $this->addFlash('error', $this->siteUi->trans('flash.comment_empty'));
 
             return $this->redirectToRoute('home', ['_fragment' => 'post-'.$post->getId()]);
@@ -211,7 +211,7 @@ final class PostController extends AbstractController
 
         $this->addFlash('success', $this->siteUi->trans('flash.comment_removed'));
 
-        return $this->redirectToRoute('home', $postId !== null ? ['_fragment' => 'post-'.$postId] : []);
+        return $this->redirectToRoute('home', null !== $postId ? ['_fragment' => 'post-'.$postId] : []);
     }
 
     private function denyAccessUnlessOwnerOrAdmin(Post $post): void

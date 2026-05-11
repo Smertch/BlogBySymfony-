@@ -13,8 +13,8 @@ use Symfony\Component\Messenger\Stamp\NonSendableStampInterface;
 final readonly class KafkaReceivedStamp implements NonSendableStampInterface
 {
     /**
-     * @param object $message An instance of \RdKafka\Message (typed as object so the class can be
-     *                        autoloaded even when the rdkafka extension is not installed at parse time).
+     * @param object $message an instance of \RdKafka\Message (typed as object so the class can be
+     *                        autoloaded even when the rdkafka extension is not installed at parse time)
      */
     public function __construct(
         public object $message,

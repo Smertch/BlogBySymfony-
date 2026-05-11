@@ -7,8 +7,8 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
-use App\Util\AdminPagination;
 use App\Service\SiteUiTranslator;
+use App\Util\AdminPagination;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -65,10 +65,10 @@ final class UserCrudController extends AbstractCrudController
             ->onlyOnForms()
             ->setFormType(PasswordType::class)
             ->setFormTypeOption('mapped', false)
-            ->setRequired($pageName === Crud::PAGE_NEW);
+            ->setRequired(Crud::PAGE_NEW === $pageName);
         yield ChoiceField::new('role', 'Role')
             ->setChoices(array_combine(
-                array_map(fn (UserRole $r) => $r->label(), UserRole::cases()),
+                array_map(static fn (UserRole $r) => $r->label(), UserRole::cases()),
                 UserRole::cases(),
             ))
             ->onlyOnForms();
@@ -98,7 +98,7 @@ final class UserCrudController extends AbstractCrudController
         $perPage = 10;
 
         $result = $this->userRepository->searchPaginated(
-            $query !== '' ? $query : null,
+            '' !== $query ? $query : null,
             $twofa,
             $page,
             $perPage,
@@ -203,7 +203,7 @@ final class UserCrudController extends AbstractCrudController
         }
 
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null) {
+        if (null === $request) {
             return;
         }
 
@@ -215,7 +215,7 @@ final class UserCrudController extends AbstractCrudController
             }
         }
 
-        if (\is_string($plain) && $plain !== '') {
+        if (\is_string($plain) && '' !== $plain) {
             $entityInstance->setPassword($this->hasher->hashPassword($entityInstance, $plain));
         }
     }

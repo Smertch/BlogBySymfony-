@@ -44,7 +44,7 @@ final class AdminPagination
         $out = [];
         $prev = null;
         foreach ($sorted as $p) {
-            if ($prev !== null && $p - $prev > 1) {
+            if (null !== $prev && $p - $prev > 1) {
                 $out[] = null;
             }
             $out[] = $p;
