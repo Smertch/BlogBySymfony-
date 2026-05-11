@@ -1,0 +1,180 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block title %}{{ meta_title }}{% endblock title %}
+
+{% block topbar_leading %}
+    <i class="bi bi-translate fs-4" style="color: #2c6e2f;"></i>
+{% endblock topbar_leading %}
+
+{% block topbar_title %}{{ ui('admin.translations.title') }}{% endblock topbar_title %}
+
+{% block topbar_actions %}
+    <a class="btn btn-primary-green" href="{{ urls.translations_new }}">
+        <i class="bi bi-plus-circle me-1"></i> {{ ui('admin.translations.add') }}
+    </a>
+    <a class="btn btn-outline-green" href="{{ path('admin_translations_export') }}">
+        <i class="bi bi-upload me-1"></i> {{ ui('admin.translations.export') }}
+    </a>
+{% endblock topbar_actions %}
+
+{% block admin_main %}
+    {% include 'admin/_partials/flash_messages.html.twig' %}
+
+    <div class="card-dashboard card p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-database fs-5" style="color: #2c6e2f;"></i>
+                <span class="fw-semibold">{{ ui('admin.translations.all_label') }}</span>
+                <span class="badge bg-secondary bg-opacity-10 text-dark rounded-pill">{{ ui('admin.translations.results_badge', { '%count%': total }) }}</span>
+            </div>
+
+            <form method="get" action="{{ path('admin_translations_index') }}" class="d-flex flex-wrap gap-2 align-items-center">
+                <div class="input-group" style="max-width: 280px;">
+                    <span class="input-group-text bg-white border-end-0"
+                          style="border-radius: 40px 0 0 40px; border-color: var(--border-green);">
+                        <i class="bi bi-search text-secondary"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ q }}" id="translations-search-q"
+                           class="form-control search-box border-start-0"
+                           style="border-radius: 0 40px 40px 0;"
+                           placeholder="{{ ui('admin.translations.search_ph') }}"
+                           aria-label="{{ ui('admin.translations.search_ph') }}">
+                </div>
+
+                <select name="lang" class="form-select"
+                        style="max-width: 160px; border-radius: 50px; border-color: #c2dbc2;"
+                        aria-label="{{ ui('admin.table.language') }}">
+                    <option value="all" {% if lang == 'all' %}selected{% endif %}>{{ ui('admin.filter.all_languages') }}</option>
+                    <option value="en" {% if lang == 'en' %}selected{% endif %}>EN</option>
+                    <option value="de" {% if lang == 'de' %}selected{% endif %}>DE</option>
+                    <option value="es" {% if lang == 'es' %}selected{% endif %}>ES</option>
+                    <option value="ua" {% if lang == 'ua' %}selected{% endif %}>UA</option>
+                </select>
+
+                <button type="submit" class="btn btn-outline-green">
+                    <i class="bi bi-funnel"></i> {{ ui('admin.search.apply') }}
+                </button>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-translations">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">{{ ui('admin.table.id') }}</th>
+                        <th>{{ ui('admin.table.alias') }}</th>
+                        <th style="width: 100px;">{{ ui('admin.table.language') }}</th>
+                        <th>{{ ui('admin.table.translation') }}</th>
+                        <th style="width: 100px;" class="text-center">{{ ui('admin.table.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if translations is empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                {{ ui('admin.translations.empty') }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        {% for row in translations %}
+                            <tr>
+                                <td class="fw-semibold">{{ row.id }}</td>
+                                <td><code class="small">{{ row.alias }}</code></td>
+                                <td><span class="badge-lang">{{ row.languageType.value|upper }}</span></td>
+                                <td>{{ row.translate|nl2br }}</td>
+                                <td class="text-center action-icons">
+                                    <a href="{{ edit_urls[row.id] }}" title="{{ ui('admin.action.edit_translation') }}">
+                                        <i class="bi bi-pencil-square me-3"></i>
+                                    </a>
+                                    <a href="#"
+                                       title="{{ ui('admin.action.delete_translation') }}"
+                                       class="js-delete-trigger"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#confirmDeleteModal"
+                                       data-entity-name="{{ row.alias }} · {{ row.languageType.value|upper }}"
+                                       data-action-url="{{ path('admin_translation_remove', { id: row.id }) }}"
+                                       data-csrf-token="{{ csrf_token('delete-translation-' ~ row.id) }}">
+                                        <i class="bi bi-trash3"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if translations is not empty and total_pages > 1 %}
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4 pt-2 border-top border-light">
+                <div class="text-muted small">
+                    <i class="bi bi-info-circle"></i>
+                    {{ ui('admin.translations.range', {
+                        '%first%': range_first,
+                        '%last%': range_last,
+                        '%total%': total,
+                    }) }}
+                </div>
+                <nav class="ms-auto overflow-auto" style="max-width: 100%;" aria-label="Pagination">
+                    <ul class="pagination pagination-custom mb-0 flex-wrap justify-content-end">
+                        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                            {% if page > 1 %}
+                                <a class="page-link" href="{{ path('admin_translations_index', { q: q, lang: lang, page: page - 1 }) }}">
+                                    <i class="bi bi-chevron-left"></i> {{ ui('admin.pagination.previous') }}
+                                </a>
+                            {% else %}
+                                <span class="page-link"><i class="bi bi-chevron-left"></i> {{ ui('admin.pagination.previous') }}</span>
+                            {% endif %}
+                        </li>
+
+                        {% for p in pagination_pages %}
+                            {% if p is null %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% else %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link" href="{{ path('admin_translations_index', { q: q, lang: lang, page: p }) }}">{{ p }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                            {% if page < total_pages %}
+                                <a class="page-link" href="{{ path('admin_translations_index', { q: q, lang: lang, page: page + 1 }) }}">
+                                    {{ ui('admin.pagination.next') }} <i class="bi bi-chevron-right"></i>
+                                </a>
+                            {% else %}
+                                <span class="page-link">{{ ui('admin.pagination.next') }} <i class="bi bi-chevron-right"></i></span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        {% elseif translations is not empty %}
+            <div class="mt-4 pt-2 text-muted small border-top border-light">
+                <i class="bi bi-info-circle"></i>
+                {{ ui('admin.translations.range', {
+                    '%first%': range_first,
+                    '%last%': range_last,
+                    '%total%': total,
+                }) }}
+            </div>
+        {% endif %}
+    </div>
+{% endblock admin_main %}
+
+{% block admin_footer %}
+    <footer class="mt-5 pt-3 text-center small text-muted border-top border-light">
+        <i class="bi bi-dot"></i> {{ ui('admin.translations.footer_line') }}
+        <i class="bi bi-dot"></i> Bootstrap 5
+        <a href="{{ path('admin') }}" class="footer-link">{{ ui('admin.footer.dashboard') }}</a>
+        |
+        <a href="{{ path('admin_translations_index') }}" class="footer-link">{{ ui('admin.nav.translations') }}</a>
+    </footer>
+{% endblock admin_footer %}
+
+{% block body_extra %}
+    {% include 'admin/_partials/delete_confirm_modal.html.twig' with {
+        entity_label: "translation",
+    } only %}
+    {% include 'admin/_partials/delete_trigger.html.twig' %}
+{% endblock %}
