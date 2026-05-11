@@ -15,7 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 class PostLike
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: Types::BIGINT)]
     private ?int $id = null;
 

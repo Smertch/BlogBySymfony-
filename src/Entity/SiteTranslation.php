@@ -16,7 +16,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class SiteTranslation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: Types::BIGINT)]
     private ?int $id = null;
 

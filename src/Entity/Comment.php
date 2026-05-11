@@ -16,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Comment
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: 'IDENTITY')]
     #[ORM\Column(type: Types::BIGINT)]
     private ?int $id = null;
 
