@@ -345,7 +345,7 @@ final class UserManagementTest extends FunctionalTestCase
     {
         if (null !== $formSelector) {
             $node = $crawler->filter($formSelector)->first();
-            self::assertGreaterThan(0, $node->count(), sprintf('No form matched selector "%s".', $formSelector));
+            self::assertGreaterThan(0, $node->count(), \sprintf('No form matched selector "%s".', $formSelector));
 
             return $node->form();
         }

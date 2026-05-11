@@ -39,14 +39,14 @@ final class Version20260515000000 extends AbstractMigration
 
         foreach ($tables as $table) {
             $sequence = $table.'_id_seq';
-            $this->addSql(sprintf('ALTER TABLE %s ALTER COLUMN id DROP IDENTITY IF EXISTS', $table));
-            $this->addSql(sprintf('CREATE SEQUENCE %s OWNED BY %s.id', $sequence, $table));
-            $this->addSql(sprintf(
+            $this->addSql(\sprintf('ALTER TABLE %s ALTER COLUMN id DROP IDENTITY IF EXISTS', $table));
+            $this->addSql(\sprintf('CREATE SEQUENCE %s OWNED BY %s.id', $sequence, $table));
+            $this->addSql(\sprintf(
                 "SELECT setval('%s', COALESCE((SELECT MAX(id) FROM %s), 1))",
                 $sequence,
                 $table
             ));
-            $this->addSql(sprintf(
+            $this->addSql(\sprintf(
                 "ALTER TABLE %s ALTER COLUMN id SET DEFAULT nextval('%s')",
                 $table,
                 $sequence

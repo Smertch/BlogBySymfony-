@@ -35,7 +35,7 @@ final class Version20260515200000 extends AbstractMigration
                 'users' => 'users_id_seq',
             ] as $table => $sequence
         ) {
-            $this->addSql(sprintf(
+            $this->addSql(\sprintf(
                 "ALTER TABLE %s ALTER COLUMN id SET DEFAULT nextval('%s')",
                 $table,
                 $sequence
