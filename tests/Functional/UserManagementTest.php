@@ -30,7 +30,7 @@ final class UserManagementTest extends FunctionalTestCase
         $crawler = $this->client->request('GET', '/register');
         self::assertResponseIsSuccessful();
 
-        $form = $this->grabFirstForm($crawler);
+        $form = $this->grabFirstForm($crawler, '#registerForm form');
         $form['registration_form[name]'] = 'New User';
         $form['registration_form[email]'] = 'newcomer@example.com';
         $form['registration_form[password][first]'] = 'super-secret-123';
@@ -53,7 +53,7 @@ final class UserManagementTest extends FunctionalTestCase
         $this->createUser('taken@example.com');
 
         $crawler = $this->client->request('GET', '/register');
-        $form = $this->grabFirstForm($crawler);
+        $form = $this->grabFirstForm($crawler, '#registerForm form');
         $form['registration_form[name]'] = 'Duplicate';
         $form['registration_form[email]'] = 'taken@example.com';
         $form['registration_form[password][first]'] = 'super-secret-123';
@@ -69,7 +69,7 @@ final class UserManagementTest extends FunctionalTestCase
     public function testRegistrationRejectsMismatchedPasswords(): void
     {
         $crawler = $this->client->request('GET', '/register');
-        $form = $this->grabFirstForm($crawler);
+        $form = $this->grabFirstForm($crawler, '#registerForm form');
         $form['registration_form[name]'] = 'Mismatch';
         $form['registration_form[email]'] = 'mismatch@example.com';
         $form['registration_form[password][first]'] = 'super-secret-123';
@@ -85,7 +85,7 @@ final class UserManagementTest extends FunctionalTestCase
     public function testRegistrationRejectsShortPassword(): void
     {
         $crawler = $this->client->request('GET', '/register');
-        $form = $this->grabFirstForm($crawler);
+        $form = $this->grabFirstForm($crawler, '#registerForm form');
         $form['registration_form[name]'] = 'Shorty';
         $form['registration_form[email]'] = 'shorty@example.com';
         $form['registration_form[password][first]'] = 'abc';
@@ -100,7 +100,7 @@ final class UserManagementTest extends FunctionalTestCase
     public function testRegistrationRejectsInvalidEmail(): void
     {
         $crawler = $this->client->request('GET', '/register');
-        $form = $this->grabFirstForm($crawler);
+        $form = $this->grabFirstForm($crawler, '#registerForm form');
         $form['registration_form[name]'] = 'Bad Email';
         $form['registration_form[email]'] = 'not-an-email';
         $form['registration_form[password][first]'] = 'super-secret-123';
@@ -336,12 +336,20 @@ final class UserManagementTest extends FunctionalTestCase
     // -----------------------------------------------------------------
 
     /**
-     * EasyAdmin / Symfony forms render varying button labels (Save, Create,
-     * Update, Publish, ...) so picking the form by selector instead of
-     * by button text keeps the tests robust across upgrades.
+     * Pick a Symfony Crawler form: optionally scope by CSS selector when the page
+     * has several POST forms (e.g. locale switchers before the auth form).
+     *
+     * @param non-empty-string|null $formSelector e.g. '#registerForm form'
      */
-    private function grabFirstForm(Crawler $crawler): Form
+    private function grabFirstForm(Crawler $crawler, ?string $formSelector = null): Form
     {
+        if (null !== $formSelector) {
+            $node = $crawler->filter($formSelector)->first();
+            self::assertGreaterThan(0, $node->count(), sprintf('No form matched selector "%s".', $formSelector));
+
+            return $node->form();
+        }
+
         $node = $crawler->filter('form')->reduce(static function (Crawler $f): bool {
             $method = strtoupper((string) $f->attr('method'));
 
