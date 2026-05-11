@@ -15,7 +15,8 @@ permissions:
 
 env:
     PHP_VERSION: '8.3'
-    PHP_EXTENSIONS: 'intl, pdo, pdo_pgsql, pgsql, mbstring, zip, bcmath, opcache, rdkafka'
+    # Omit rdkafka: PECL build often fails on ubuntu-latest; tests use in-memory Messenger; Kafka code paths are not executed in CI.
+    PHP_EXTENSIONS: 'intl, pdo, pdo_pgsql, pgsql, mbstring, zip, bcmath, opcache'
     COMPOSER_NO_INTERACTION: '1'
     COMPOSER_PROCESS_TIMEOUT: '0'
 
