@@ -1,0 +1,19 @@
+parameters:
+    level: 5
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/Kernel.php
+    treatPhpDocTypesAsCertain: false
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+        consoleApplicationLoader: tests/console-application.php
+    doctrine:
+        objectManagerLoader: tests/object-manager.php
+    ignoreErrors:
+        # rdkafka is an optional extension; the transport guards calls at runtime
+        - identifier: class.notFound
+          path: src/Messenger/Transport/Kafka/*.php
+        # Symfony Routing/Form internals occasionally emit mixed types
+        - '#Cannot call method [a-zA-Z_]+\(\) on Symfony\\Component\\Form\\FormInterface\|null#'

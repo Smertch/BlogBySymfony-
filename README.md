@@ -1,18 +1,22 @@
 # Blog (Symfony)
 
-Symfony **7** port of the Laravel `blog` project: same business features (users with roles + 2FA, posts, RSS feed, registration welcome mail dispatched via RabbitMQ, password reset, Swagger API doc, admin panel) — implemented with native Symfony components.
+[![CI](https://github.com/Smertch/BlogBySymfony-/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Smertch/BlogBySymfony-/actions/workflows/ci.yml)
+[![Docker](https://github.com/Smertch/BlogBySymfony-/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/Smertch/BlogBySymfony-/actions/workflows/docker.yml)
 
-| Symfony equivalent in this project |
+Symfony **7** port of the Laravel `blog` project: same business features (users with roles + 2FA, posts, RSS feed, registration welcome mail dispatched asynchronously, password reset, Swagger API doc, admin panel) — implemented with native Symfony components.
+
+| Laravel original | Symfony equivalent in this project |
 |---|---|
-| Doctrine ORM (`App\Entity\*`, `App\Repository\*`) |
-| Doctrine migrations (`migrations/`) |
-| Symfony Security + `scheb/2fa-bundle` + custom controllers |
-| Twig (`templates/`) |
-| Symfony Mailer + Messenger (`symfony/amqp-messenger`) |
-| EasyAdminBundle (`/admin`) |
-| NelmioApiDocBundle + Swagger UI (`/swagger`) |
-| **Apache Kafka** (KRaft mode, single broker) |
-| Stateless firewall + `ApiTokenAuthenticator` |
+| Eloquent (`App\Models\*`) | Doctrine ORM (`App\Entity\*`, `App\Repository\*`) |
+| MySQL 8 | **PostgreSQL 16** |
+| Laravel migrations | Doctrine migrations (`migrations/`) |
+| Fortify (login, register, 2FA, password reset) | Symfony Security + `scheb/2fa-bundle` + custom controllers |
+| Blade views (`resources/views/`) | Twig (`templates/`) |
+| Mail + `vladimir-yuldashev/laravel-queue-rabbitmq` | Symfony Mailer + Messenger via a **custom Kafka transport** (`App\Messenger\Transport\Kafka`) |
+| RabbitMQ | **Apache Kafka** (KRaft mode, single broker) |
+| Filament admin panel | EasyAdminBundle (`/admin`) |
+| Swagger blade | NelmioApiDocBundle + Swagger UI (`/swagger`) |
+| Sanctum (`/api/user`) | Stateless firewall + `ApiTokenAuthenticator` |
 
 ## Requirements
 
@@ -130,12 +134,70 @@ kafka://broker1:9092,broker2:9092?topic=messages&group_id=blog
 
 ## Quality checks
 
+Most workflows have a `make` shortcut (see `make help`):
+
 ```bash
+make install        # composer install
+make lint           # Twig + YAML + DI container linting
+make cs             # PHP-CS-Fixer (dry-run)
+make cs-fix         # PHP-CS-Fixer (apply)
+make phpstan        # PHPStan static analysis (level 5)
+make test           # PHPUnit
+make ci             # full local CI suite (composer validate + lint + cs + phpstan + test)
+```
+
+Or directly:
+
+```bash
+composer validate --strict --no-check-publish
 php bin/console lint:twig templates
-php bin/console lint:yaml config translations
+php bin/console lint:yaml config translations --parse-tags
+php bin/console lint:container
 php bin/console doctrine:schema:validate
+vendor/bin/php-cs-fixer fix --dry-run --diff
+vendor/bin/phpstan analyse
 vendor/bin/phpunit
 ```
+
+## CI/CD
+
+GitHub Actions workflows live under `.github/workflows/`:
+
+### `ci.yml` — Continuous Integration
+
+Triggered on every push and pull request to `main`. Runs in parallel:
+
+| Job              | What it does                                                                 |
+|------------------|------------------------------------------------------------------------------|
+| `composer-validate` | `composer validate --strict --no-check-publish`                              |
+| `lint`           | `lint:twig`, `lint:yaml`, `lint:container`                                   |
+| `cs-fixer`       | `php-cs-fixer fix --dry-run --diff`, reported as checkstyle annotations      |
+| `phpstan`        | PHPStan level 5 with `phpstan-symfony` + `phpstan-doctrine`                  |
+| `tests`          | `doctrine:migrations:migrate` + `doctrine:schema:validate` + `phpunit` against a Postgres 16 service container; Messenger uses `in-memory://` and Mailer uses `null://null` |
+
+The cache is keyed off `composer.lock`/`composer.json` and shared across jobs.
+
+### `docker.yml` — Container images
+
+Triggered on push to `main`, semver tags (`v*.*.*`), or manual dispatch. Builds two images in a matrix and pushes them to **GHCR**:
+
+- `ghcr.io/smertch/blogbysymfony-/php-fpm`
+- `ghcr.io/smertch/blogbysymfony-/nginx`
+
+Tags follow the [`docker/metadata-action`](https://github.com/docker/metadata-action) defaults: branch name, semver, and `sha-<short>`. Layer cache is stored in GitHub Actions cache (`type=gha`, scope per image).
+
+### `dependabot.yml`
+
+Weekly updates for:
+
+- Composer (grouped: `symfony/*`, `doctrine/*`, dev-tooling)
+- GitHub Actions
+- Docker images in `docker/php-fpm/` and `docker/nginx/`
+
+### Required permissions
+
+- The `docker.yml` workflow needs `packages: write` (already set in the workflow) so the default `GITHUB_TOKEN` can push to GHCR — no extra secrets required.
+- If you later add deploy jobs, store credentials as GitHub repository secrets and reference them via `${{ secrets.* }}`.
 
 ## Project layout (essentials)
 
