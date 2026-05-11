@@ -166,7 +166,8 @@ jobs:
                     --health-retries=12
 
         env:
-            DATABASE_URL: 'postgresql://user:password@127.0.0.1:5432/blog_test?serverVersion=16&charset=utf8'
+            # Base DB name must be "blog": config/packages/doctrine.yaml adds dbname_suffix "_test" in APP_ENV=test → blog_test (matches POSTGRES_DB).
+            DATABASE_URL: 'postgresql://user:password@127.0.0.1:5432/blog?serverVersion=16&charset=utf8'
             APP_ENV: test
             APP_SECRET: ci-test-secret
             APP_NAME: Symfony
