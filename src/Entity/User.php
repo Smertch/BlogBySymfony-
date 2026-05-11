@@ -32,10 +32,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
     #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])]
     private int $roleId = 1;
 
-    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private string $email = '';
 
-    #[ORM\Column(enumType: SiteLanguage::class, options: ['default' => 'EN'])]
+    #[ORM\Column(length: 3, enumType: SiteLanguage::class, options: ['default' => 'EN'])]
     private SiteLanguage $siteLanguage = SiteLanguage::EN;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]

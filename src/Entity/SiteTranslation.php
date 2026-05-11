@@ -25,7 +25,7 @@ class SiteTranslation
     #[ORM\Column(length: 190)]
     private string $alias = '';
 
-    #[ORM\Column(name: 'language_type', enumType: SiteLanguage::class)]
+    #[ORM\Column(name: 'language_type', length: 3, enumType: SiteLanguage::class)]
     private SiteLanguage $languageType = SiteLanguage::EN;
 
     #[Assert\NotBlank]
