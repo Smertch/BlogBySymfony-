@@ -147,6 +147,7 @@ final class KafkaTransport implements TransportInterface
         $conf->set('metadata.broker.list', implode(',', $this->dsn->brokers));
         $conf->set('enable.auto.commit', 'false');
         $conf->set('auto.offset.reset', 'earliest');
+        $conf->set('allow.auto.create.topics', 'true');
         foreach ($this->dsn->consumerConfig as $key => $value) {
             $conf->set($key, $value);
         }

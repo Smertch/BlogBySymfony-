@@ -6,4 +6,4 @@ scheb_two_factor:
         server_name: '%env(APP_NAME)%'
         issuer: '%env(APP_NAME)%'
         digits: 6
-        window: 1
+        leeway: 1
