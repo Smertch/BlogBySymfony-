@@ -58,6 +58,9 @@ jobs:
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
 
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
+
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
 
@@ -97,6 +100,9 @@ jobs:
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
 
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
+
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
 
@@ -127,6 +133,9 @@ jobs:
                   path: ${{ steps.composer-cache.outputs.dir }}
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
+
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
 
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
@@ -186,6 +195,9 @@ jobs:
                   path: ${{ steps.composer-cache.outputs.dir }}
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
+
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
 
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
