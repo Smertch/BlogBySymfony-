@@ -5,18 +5,18 @@
 
 Symfony **7** port of the Laravel `blog` project: same business features (users with roles + 2FA, posts, RSS feed, registration welcome mail dispatched asynchronously, password reset, Swagger API doc, admin panel) — implemented with native Symfony components.
 
-| Laravel original | Symfony equivalent in this project |
+| Symfony equivalent in this project |
 |---|---|
-| Eloquent (`App\Models\*`) | Doctrine ORM (`App\Entity\*`, `App\Repository\*`) |
-| MySQL 8 | **PostgreSQL 16** |
-| Laravel migrations | Doctrine migrations (`migrations/`) |
-| Fortify (login, register, 2FA, password reset) | Symfony Security + `scheb/2fa-bundle` + custom controllers |
-| Blade views (`resources/views/`) | Twig (`templates/`) |
-| Mail + `vladimir-yuldashev/laravel-queue-rabbitmq` | Symfony Mailer + Messenger via a **custom Kafka transport** (`App\Messenger\Transport\Kafka`) |
-| RabbitMQ | **Apache Kafka** (KRaft mode, single broker) |
-| Filament admin panel | EasyAdminBundle (`/admin`) |
-| Swagger blade | NelmioApiDocBundle + Swagger UI (`/swagger`) |
-| Sanctum (`/api/user`) | Stateless firewall + `ApiTokenAuthenticator` |
+| Doctrine ORM (`App\Entity\*`, `App\Repository\*`) |
+| **PostgreSQL 16** |
+| Doctrine migrations (`migrations/`) |
+| Symfony Security + `scheb/2fa-bundle` + custom controllers |
+| Twig (`templates/`) |
+| Symfony Mailer + Messenger via a **custom Kafka transport** (`App\Messenger\Transport\Kafka`) |
+| **Apache Kafka** (KRaft mode, single broker) |
+| EasyAdminBundle (`/admin`) |
+| NelmioApiDocBundle + Swagger UI (`/swagger`) |
+| Stateless firewall + `ApiTokenAuthenticator` |
 
 ## Requirements
 
