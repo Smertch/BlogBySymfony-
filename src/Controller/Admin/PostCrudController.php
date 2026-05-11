@@ -6,6 +6,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\Post;
 use App\Repository\PostRepository;
+use App\Util\AdminPagination;
+use App\Service\SiteUiTranslator;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -32,6 +34,7 @@ final class PostCrudController extends AbstractCrudController
         private readonly PostRepository $postRepository,
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly EntityManagerInterface $em,
+        private readonly SiteUiTranslator $siteUi,
     ) {
     }
 
@@ -110,12 +113,14 @@ final class PostCrudController extends AbstractCrudController
             ->generateUrl();
 
         return $this->render('admin/posts/index.html.twig', [
+            'sidebar_nav' => 'posts',
             'posts' => $result['items'],
             'total' => $total,
             'q' => $query,
             'page' => $page,
             'per_page' => $perPage,
             'total_pages' => $totalPages,
+            'pagination_pages' => AdminPagination::compactPages($page, $totalPages),
             'edit_urls' => $editUrls,
             'urls' => [
                 'posts_new' => $postsNewUrl,
@@ -142,14 +147,16 @@ final class PostCrudController extends AbstractCrudController
             ->generateUrl();
 
         if (!$this->isCsrfTokenValid('delete-post-'.$post->getId(), $token)) {
-            $this->addFlash('danger', 'Invalid CSRF token.');
+            $this->addFlash('danger', $this->siteUi->trans('flash.invalid_csrf'));
 
             return new RedirectResponse($indexUrl);
         }
 
         $this->em->remove($post);
         $this->em->flush();
-        $this->addFlash('success', \sprintf('Post "%s" deleted.', $post->getTitle()));
+        $this->addFlash('success', $this->siteUi->trans('flash.post_deleted', [
+            '%title%' => $post->getTitle(),
+        ]));
 
         return new RedirectResponse($indexUrl);
     }
@@ -167,7 +174,7 @@ final class PostCrudController extends AbstractCrudController
             ->generateUrl();
 
         if (!$this->isCsrfTokenValid('bulk-delete-posts', $token)) {
-            $this->addFlash('danger', 'Invalid CSRF token.');
+            $this->addFlash('danger', $this->siteUi->trans('flash.invalid_csrf'));
 
             return new RedirectResponse($indexUrl);
         }
@@ -177,9 +184,11 @@ final class PostCrudController extends AbstractCrudController
         $deleted = $this->postRepository->deleteByIds($ids);
 
         if ($deleted > 0) {
-            $this->addFlash('success', \sprintf('Deleted %d post(s).', $deleted));
+            $this->addFlash('success', $this->siteUi->trans('flash.posts_bulk_deleted', [
+                '%count%' => (string) $deleted,
+            ]));
         } else {
-            $this->addFlash('warning', 'No posts were deleted.');
+            $this->addFlash('warning', $this->siteUi->trans('flash.posts_bulk_none'));
         }
 
         return new RedirectResponse($indexUrl);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\SiteLanguage;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -32,6 +33,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
 
     #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     private string $email = '';
+
+    #[ORM\Column(enumType: SiteLanguage::class, options: ['default' => 'EN'])]
+    private SiteLanguage $siteLanguage = SiteLanguage::EN;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $emailVerifiedAt = null;
@@ -97,6 +101,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
     public function setEmail(string $email): self
     {
         $this->email = $email;
+        $this->touch();
+
+        return $this;
+    }
+
+    public function getSiteLanguage(): SiteLanguage
+    {
+        return $this->siteLanguage;
+    }
+
+    public function setSiteLanguage(SiteLanguage $siteLanguage): self
+    {
+        $this->siteLanguage = $siteLanguage;
         $this->touch();
 
         return $this;

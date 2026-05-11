@@ -1,90 +1,89 @@
 {% extends 'admin/_layout.html.twig' %}
 
-{% block title %}Dashboard · Blog Admin{% endblock %}
-{% block topbar_title %}Dashboard{% endblock %}
-{% block active_nav %}dashboard{% endblock %}
+{% block title %}{{ ui('admin.dashboard.title') }} | {{ ui('admin.nav.blog_admin') }}{% endblock title %}
+{% block topbar_title %}{{ ui('admin.dashboard.title') }}{% endblock topbar_title %}
 
 {% block topbar_actions %}
     <a class="btn btn-primary-green" href="{{ urls.posts_new }}">
-        <i class="bi bi-plus-circle me-1"></i> New post
+        <i class="bi bi-plus-circle me-1"></i> {{ ui('admin.topbar.new_post') }}
     </a>
     <a class="btn btn-outline-green" href="{{ urls.users_new }}">
-        <i class="bi bi-person-plus me-1"></i> New user
+        <i class="bi bi-person-plus me-1"></i> {{ ui('admin.topbar.new_user') }}
     </a>
-{% endblock %}
+{% endblock topbar_actions %}
 
-{% block content %}
-    {# First row: stats (2 cards as in the mockup) #}
+{% block admin_main %}
+    <!-- First row: stats (2 cards as in the mockup) -->
     <div class="row g-4 mb-5">
-        {# Users card #}
+        <!-- Users card -->
         <div class="col-md-6">
             <div class="card-dashboard card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-start justify-content-between">
                     <div>
-                        <span class="text-secondary text-uppercase small fw-semibold">Users</span>
+                        <span class="text-secondary text-uppercase small fw-semibold">{{ ui('admin.dashboard.users_card') }}</span>
                         <div class="stat-number mt-1">{{ stats.users_total }}</div>
-                        <div class="text-muted small mt-1">Total registered users</div>
+                        <div class="text-muted small mt-1">{{ ui('admin.dashboard.users_total_hint') }}</div>
                     </div>
                     <i class="bi bi-people fs-1" style="color: #cfe5cf;"></i>
                 </div>
                 <div class="mt-3 d-flex flex-wrap gap-2">
                     <div class="badge-2fa">
                         <i class="bi bi-shield-lock me-1"></i>
-                        {{ stats.users_with_2fa }} With 2FA
+                        {{ stats.users_with_2fa }} {{ ui('admin.dashboard.with_2fa') }}
                     </div>
                     <div class="badge-2fa">
                         <i class="bi bi-google me-1"></i>
-                        {{ stats.users_with_2fa }} Confirmed Google Authenticator
+                        {{ stats.users_with_2fa }} {{ ui('admin.dashboard.ga_confirmed') }}
                     </div>
                 </div>
             </div>
         </div>
 
-        {# Posts card #}
+        <!-- Posts card -->
         <div class="col-md-6">
             <div class="card-dashboard card p-3 p-md-4 h-100">
                 <div class="d-flex align-items-start justify-content-between">
                     <div>
-                        <span class="text-secondary text-uppercase small fw-semibold">Posts</span>
+                        <span class="text-secondary text-uppercase small fw-semibold">{{ ui('admin.dashboard.posts_card') }}</span>
                         <div class="stat-number mt-1">{{ stats.posts_total }}</div>
-                        <div class="text-muted small mt-1">Total published posts</div>
+                        <div class="text-muted small mt-1">{{ ui('admin.dashboard.posts_total_hint') }}</div>
                     </div>
                     <i class="bi bi-pencil-square fs-1" style="color: #cfe5cf;"></i>
                 </div>
                 <div class="mt-3">
                     <div class="green-badge-light">
                         <i class="bi bi-calendar-week me-1"></i>
-                        {{ stats.posts_week }} New this week · Posts created in last 7 days
+                        {{ stats.posts_week }} {{ ui('admin.dashboard.new_this_week') }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {# Section: Latest posts (with View all and empty state) #}
+    <!-- Section: Latest posts (with View all and empty state) -->
     <div class="row g-4 mb-5">
         <div class="col-12">
             <div class="card-dashboard card p-4">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <h5 class="fw-semibold mb-0" style="color: #1e401e;">
-                        <i class="bi bi-newspaper me-2"></i> Latest posts
+                        <i class="bi bi-newspaper me-2"></i> {{ ui('admin.dashboard.latest_posts') }}
                     </h5>
                     <a href="{{ urls.posts_index }}" class="text-decoration-none small fw-semibold" style="color: #2c6e2f;">
-                        View all <i class="bi bi-arrow-right-short"></i>
+                        {{ ui('admin.dashboard.view_all') }} <i class="bi bi-arrow-right-short"></i>
                     </a>
                 </div>
                 <hr class="my-3">
 
                 {% if recent_posts is empty %}
-                    {# State: no posts #}
+                    <!-- State: no posts -->
                     <div class="text-center py-5">
                         <div class="empty-state-icon mb-3">
                             <i class="bi bi-file-earmark-text fs-1"></i>
                         </div>
-                        <h6 class="fw-semibold text-secondary">No posts yet.</h6>
-                        <p class="text-muted small">Start blogging by creating your first post.</p>
+                        <h6 class="fw-semibold text-secondary">{{ ui('admin.dashboard.no_posts') }}</h6>
+                        <p class="text-muted small">{{ ui('admin.dashboard.start_blog') }}</p>
                         <a href="{{ urls.posts_new }}" class="btn btn-primary-green mt-2">
-                            <i class="bi bi-plus-lg me-1"></i> Create the first post
+                            <i class="bi bi-plus-lg me-1"></i> {{ ui('admin.dashboard.create_first_post') }}
                         </a>
                     </div>
                 {% else %}
@@ -99,8 +98,8 @@
                                         </div>
                                         <div class="small text-secondary">
                                             <i class="bi bi-person me-1"></i>
-                                            {{ post.user ? post.user.name : 'Unknown' }}
-                                            <span class="mx-1">·</span>
+                                            {% if post.user %}{{ post.user.name }}{% else %}{{ ui('feed.unknown_author') }}{% endif %}
+                                            <span class="mx-1">|</span>
                                             <i class="bi bi-clock me-1"></i>
                                             {{ post.createdAt|date('M j, Y') }}
                                         </div>
@@ -115,7 +114,7 @@
         </div>
     </div>
 
-    {# Latest users (mockup-aligned table) #}
+    <!-- Latest users (mockup-aligned table) -->
     <div class="row g-4">
         <div class="col-12">
             <div class="card-dashboard card p-4">
@@ -155,7 +154,7 @@
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <i class="bi bi-person-circle fs-5" style="color: #588b5b;"></i>
-                                                <span class="fw-semibold">{{ u.name ?: u.email }}</span>
+                                                <span class="fw-semibold">{{ u.name|default(u.email) }}</span>
                                                 <span class="small text-secondary">{{ u.email }}</span>
                                             </div>
                                         </td>
@@ -188,14 +187,14 @@
                 <div class="text-center text-muted small mt-2 border-top pt-3">
                     <i class="bi bi-person-plus me-1"></i>
                     Total registered: <strong>{{ stats.users_total }}</strong>
-                    {{ stats.users_total == 1 ? 'user' : 'users' }}
-                    · with 2FA: <strong>{{ stats.users_with_2fa }}</strong>
+                    {% if stats.users_total == 1 %}user{% else %}users{% endif %}
+                    | with 2FA: <strong>{{ stats.users_with_2fa }}</strong>
                 </div>
             </div>
         </div>
     </div>
 
-    {# Optional analytics + quick actions section #}
+    <!-- Optional analytics + quick actions section -->
     <div class="row mt-5 g-4">
         <div class="col-md-6">
             <div class="card-dashboard card p-3">
@@ -215,7 +214,7 @@
                 <div class="mt-3 small text-success bg-light p-2 rounded-3">
                     <i class="bi bi-info-circle-fill"></i>
                     New this week: {{ stats.posts_week }}
-                    {{ stats.posts_week == 1 ? 'post' : 'posts' }} created in last 7 days.
+                    {% if stats.posts_week == 1 %}post{% else %}posts{% endif %} created in last 7 days.
                 </div>
             </div>
         </div>
@@ -239,8 +238,8 @@
                     </a>
                 </div>
                 <div class="mt-3 small text-secondary text-center">
-                    Logged in as <strong>{{ app.user ? app.user.userIdentifier : 'guest' }}</strong>
-                    · Green zone
+                    Logged in as <strong>{{ dashboard_logged_in_as }}</strong>
+                    <span class="text-muted"> | Green zone</span>
                 </div>
             </div>
         </div>

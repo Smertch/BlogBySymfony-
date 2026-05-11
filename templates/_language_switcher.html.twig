@@ -1,0 +1,26 @@
+<div class="dropdown site-locale-switcher">
+    <button type="button"
+            class="btn btn-sm btn-outline-secondary dropdown-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+        {{ site_language.value }}
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        {% for lang in site_languages %}
+            <li>
+                <form method="post"
+                      action="{{ path('locale_switch') }}"
+                      class="m-0 js-site-locale-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('locale_switch') }}">
+                    <input type="hidden" name="language" value="{{ lang.value }}">
+                    <input type="hidden" name="redirect" value="{{ app.request.requestUri }}">
+                    <button type="submit"
+                            class="dropdown-item{% if site_language == lang %} active{% endif %}">
+                        {{ lang.value }}
+                    </button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+<script src="{{ asset('js/locale-switcher.js') }}" defer></script>

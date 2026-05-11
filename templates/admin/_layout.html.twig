@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>{% block title %}Blog Admin{% endblock %}</title>
+    <title>{% block title %}Blog Admin{% endblock title %}</title>
 
-    {# Bootstrap 5 + Bootstrap Icons + Inter font #}
+    <!-- Bootstrap 5 + Bootstrap Icons + Inter font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -316,19 +316,57 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
+
+        /* Translations list (matches green-panel mockup) */
+        .table-translations th {
+            background-color: #f3f9f3;
+            font-weight: 600;
+            color: #1e401e;
+            border-bottom: 2px solid var(--border-green);
+        }
+
+        .table-translations td {
+            vertical-align: middle;
+        }
+
+        .badge-lang {
+            background-color: var(--primary-light);
+            color: #1f6822;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+
+        .search-box {
+            border-radius: 40px;
+            border: 1px solid var(--border-green);
+            padding: 8px 16px;
+        }
+
+        .search-box:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(44, 110, 47, 0.1);
+            outline: none;
+        }
+
+        .pagination-custom .page-link {
+            border-radius: 30px;
+            border: 1px solid var(--border-green);
+        }
     </style>
 
-    {% block head_extra %}{% endblock %}
+    {% block head_extra %}{% endblock head_extra %}
 </head>
 <body>
 
 <div class="container-fluid px-0">
     <div class="row g-0">
-        {# SIDEBAR (left navigation) #}
+        <!-- SIDEBAR -->
         <div class="col-md-3 col-lg-2 sidebar p-4">
             <div class="d-flex align-items-center mb-4 pb-2">
                 <i class="bi bi-journal-bookmark-fill fs-3" style="color: #2c6e2f;"></i>
-                <span class="fs-4 fw-semibold ms-2" style="color: #1b4c1b;">Blog Admin</span>
+                <span class="fs-4 fw-semibold ms-2" style="color: #1b4c1b;">{{ ui('admin.nav.blog_admin') }}</span>
             </div>
 
             <div class="mb-4 pb-1 border-bottom border-success-subtle">
@@ -337,56 +375,65 @@
                         <i class="bi bi-person-circle"></i>
                     </div>
                     <div>
-                        <div class="fw-semibold small text-secondary">Logged in as</div>
+                        <div class="fw-semibold small text-secondary">{{ ui('admin.nav.logged_in_as') }}</div>
                         <div class="fw-bold" style="color: #1f4f21;">
-                            {{ app.user ? app.user.userIdentifier : 'guest' }}
+                            {{ app.user ? app.user.userIdentifier : ui('admin.guest') }}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {% set active_nav = block('active_nav') is defined ? block('active_nav') : 'dashboard' %}
+            <!-- sidebar_nav set by admin controllers -->
 
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {{ active_nav == 'dashboard' ? 'active' }}" href="{{ path('admin') }}">
-                        <i class="bi bi-speedometer2"></i> Dashboard
+                    <a class="nav-link {{ (sidebar_nav|default('dashboard')) == 'dashboard' ? 'active' }}" href="{{ path('admin') }}">
+                        <i class="bi bi-speedometer2"></i> {{ ui('admin.nav.dashboard') }}
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ active_nav == 'home' ? 'active' }}" href="{{ path('home') }}">
-                        <i class="bi bi-house-door"></i> Home
+                    <a class="nav-link {{ (sidebar_nav|default('dashboard')) == 'home' ? 'active' }}" href="{{ path('home') }}">
+                        <i class="bi bi-house-door"></i> {{ ui('admin.nav.home') }}
                     </a>
                 </li>
 
-                <li class="nav-section">Content</li>
+                <li class="nav-section">{{ ui('admin.nav.content') }}</li>
 
                 <li class="nav-item">
-                    <a class="nav-link {{ active_nav == 'users' ? 'active' }}" href="{{ nav_urls.users_index|default('#') }}">
-                        <i class="bi bi-people"></i> Users
+                    <a class="nav-link {{ (sidebar_nav|default('dashboard')) == 'users' ? 'active' }}" href="{{ nav_urls.users_index|default('#') }}">
+                        <i class="bi bi-people"></i> {{ ui('admin.nav.users') }}
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ active_nav == 'posts' ? 'active' }}" href="{{ nav_urls.posts_index|default('#') }}">
-                        <i class="bi bi-pencil-square"></i> Posts
+                    <a class="nav-link {{ (sidebar_nav|default('dashboard')) == 'posts' ? 'active' }}" href="{{ nav_urls.posts_index|default('#') }}">
+                        <i class="bi bi-pencil-square"></i> {{ ui('admin.nav.posts') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ (sidebar_nav|default('dashboard')) == 'translations' ? 'active' }}" href="{{ path('admin_translations_index') }}">
+                        <i class="bi bi-translate"></i> {{ ui('admin.nav.translations') }}
                     </a>
                 </li>
             </ul>
 
             <hr class="my-4" style="color: #cfe2cf;">
             <div class="small text-secondary mt-2">
-                <i class="bi bi-shield-check me-1"></i> v2.0 · Green Panel
+                <i class="bi bi-shield-check me-1"></i> {{ ui('admin.version_badge') }}
             </div>
         </div>
 
-        {# MAIN AREA (right content) #}
+        <!-- MAIN AREA -->
         <div class="col-md-9 col-lg-10" style="background-color: #f8fbf8 !important;">
-            {# Top bar with greeting and quick actions #}
+            <!-- Top bar -->
             <div class="topbar d-flex flex-wrap justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
-                    <i class="bi bi-grid-3x3-gap-fill fs-4" style="color: #2c6e2f;"></i>
+                    {% block topbar_leading %}
+                        <i class="bi bi-grid-3x3-gap-fill fs-4" style="color: #2c6e2f;"></i>
+                    {% endblock topbar_leading %}
                     <h5 class="mb-0 fw-semibold" style="color: #1c441e;">
-                        {% block topbar_title %}Dashboard{% endblock %}
+                        {% block topbar_title %}
+                            {{ ui('admin.dashboard.title') }}
+                        {% endblock topbar_title %}
                     </h5>
                     {% if app.user %}
                         <span class="badge bg-white text-dark border px-3 py-1 rounded-pill">
@@ -395,26 +442,28 @@
                     {% endif %}
                 </div>
                 <div class="d-flex gap-2 mt-2 mt-sm-0">
-                    {% block topbar_actions %}{% endblock %}
+                    {% block topbar_actions %}{% endblock topbar_actions %}
                 </div>
             </div>
 
             <div class="p-4 p-md-5 pt-4">
-                {% block content %}{% endblock %}
+                {% block admin_main %}
+                {% endblock admin_main %}
 
-                {# footer note (optional) #}
-                <footer class="mt-5 pt-3 text-center small text-muted border-top border-light">
-                    <i class="bi bi-dot"></i> Blog Admin Panel — green-on-white theme
-                    <i class="bi bi-dot"></i> Bootstrap 5
-                    <a href="{{ path('admin') }}" class="footer-link">Dashboard</a> ·
-                    <a href="{{ path('home') }}" class="footer-link">Home</a>
-                </footer>
+                {% block admin_footer %}
+                    <footer class="mt-5 pt-3 text-center small text-muted border-top border-light">
+                        <i class="bi bi-dot"></i> {{ ui('admin.footer.note') }}
+                        <i class="bi bi-dot"></i> Bootstrap 5
+                        <a href="{{ path('admin') }}" class="footer-link">{{ ui('admin.footer.dashboard') }}</a> ·
+                        <a href="{{ path('home') }}" class="footer-link">{{ ui('admin.footer.home') }}</a>
+                    </footer>
+                {% endblock admin_footer %}
             </div>
         </div>
     </div>
 </div>
 
-{# Bootstrap JS Bundle for interactive components #}
+<!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -428,6 +477,6 @@
     });
 </script>
 
-{% block body_extra %}{% endblock %}
+{% block body_extra %}{% endblock body_extra %}
 </body>
 </html>

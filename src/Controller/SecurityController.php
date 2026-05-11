@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Enum\SiteLanguage;
 use App\Form\ForgotPasswordFormType;
 use App\Form\RegistrationFormType;
 use App\Form\ResetPasswordFormType;
 use App\Message\RegistrationWelcomeMail;
 use App\Repository\PasswordResetTokenRepository;
 use App\Repository\UserRepository;
+use App\Service\SiteUiTranslator;
+use App\SiteUi\SiteLanguagePreference;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -27,6 +30,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class SecurityController extends AbstractController
 {
+    public function __construct(
+        private readonly SiteUiTranslator $siteUi,
+    ) {
+    }
+
     #[Route(path: '/login', name: 'login', methods: ['GET'])]
     public function loginShow(AuthenticationUtils $authenticationUtils): Response
     {
@@ -88,7 +96,7 @@ final class SecurityController extends AbstractController
 
         $data = $form->getData();
         if ($users->findByEmail((string) $data['email']) !== null) {
-            $this->addFlash('error', 'The email has already been taken.');
+            $this->addFlash('error', $this->siteUi->trans('flash.email_taken'));
 
             return $this->redirectToRoute('register');
         }
@@ -97,6 +105,15 @@ final class SecurityController extends AbstractController
         $user->setName((string) $data['name']);
         $user->setEmail((string) $data['email']);
         $user->setPassword($hasher->hashPassword($user, (string) $form->get('password')->getData()));
+
+        $guestLangRaw = $request->getSession()->get(SiteLanguagePreference::SESSION_KEY);
+        if (\is_string($guestLangRaw)) {
+            $guestLang = SiteLanguage::tryFrom(strtoupper(trim($guestLangRaw)));
+            if ($guestLang !== null) {
+                $user->setSiteLanguage($guestLang);
+            }
+        }
+
         $users->save($user);
 
         $userId = $user->getId();
@@ -104,7 +121,7 @@ final class SecurityController extends AbstractController
             $bus->dispatch(new RegistrationWelcomeMail($userId));
         }
 
-        $this->addFlash('success', 'Account created. Please sign in.');
+        $this->addFlash('success', $this->siteUi->trans('flash.account_created'));
 
         return $this->redirectToRoute('login');
     }
@@ -161,7 +178,7 @@ final class SecurityController extends AbstractController
             $mailer->send($mail);
         }
 
-        $this->addFlash('status', 'We have emailed your password reset link!');
+        $this->addFlash('status', $this->siteUi->trans('flash.password_reset_sent'));
 
         return $this->redirectToRoute('password.request');
     }
@@ -207,14 +224,14 @@ final class SecurityController extends AbstractController
 
         $row = $tokens->findByEmail($email);
         if ($row === null || !password_verify($rawToken, $row->getToken())) {
-            $this->addFlash('error', 'This password reset token is invalid.');
+            $this->addFlash('error', $this->siteUi->trans('flash.password_reset_invalid_token'));
 
             return $this->redirectToRoute('login');
         }
 
         $user = $users->findByEmail($email);
         if ($user === null) {
-            $this->addFlash('error', 'User not found.');
+            $this->addFlash('error', $this->siteUi->trans('flash.user_not_found'));
 
             return $this->redirectToRoute('login');
         }
@@ -223,7 +240,7 @@ final class SecurityController extends AbstractController
         $users->save($user);
         $tokens->deleteByEmail($email);
 
-        $this->addFlash('status', 'Your password has been reset!');
+        $this->addFlash('status', $this->siteUi->trans('flash.password_reset_done'));
 
         return $this->redirectToRoute('login');
     }

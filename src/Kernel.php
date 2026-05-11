@@ -10,4 +10,11 @@ use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 final class Kernel extends BaseKernel
 {
     use MicroKernelTrait;
+
+    protected function initializeContainer(): void
+    {
+        RuntimeDirs::prepareKernelCache($this);
+
+        parent::initializeContainer();
+    }
 }

@@ -1,29 +1,28 @@
 {% extends 'admin/_layout.html.twig' %}
 
-{% block title %}Posts · Blog Admin{% endblock %}
-{% block topbar_title %}Posts{% endblock %}
-{% block active_nav %}posts{% endblock %}
+{% block title %}{{ ui('admin.posts.title') }} · {{ ui('admin.nav.blog_admin') }}{% endblock %}
+{% block topbar_title %}{{ ui('admin.posts.title') }}{% endblock %}
 
 {% block topbar_actions %}
     <a class="btn btn-primary-green" href="{{ urls.posts_new }}">
-        <i class="bi bi-plus-circle me-1"></i> Add Post
+        <i class="bi bi-plus-circle me-1"></i> {{ ui('admin.posts.add') }}
     </a>
     <button type="button"
             class="btn btn-outline-danger-custom js-bulk-delete-trigger"
             disabled
             data-bs-toggle="modal"
             data-bs-target="#bulkDeleteModal">
-        <i class="bi bi-trash3 me-1"></i> Delete <span class="js-bulk-count d-none ms-1">(0)</span>
+        <i class="bi bi-trash3 me-1"></i> {{ ui('admin.posts.bulk_delete') }} <span class="js-bulk-count d-none ms-1">(0)</span>
     </button>
 {% endblock %}
 
-{% block content %}
+{% block admin_main %}
     {% include 'admin/_partials/flash_messages.html.twig' %}
 
     {% include 'admin/_partials/search_card.html.twig' with {
         action_url: urls.posts_index,
         query: q,
-        query_placeholder: 'Search by title or author...',
+        query_placeholder: ui('admin.posts.search_ph'),
         total: total,
         hidden_fields: {},
         filter: null,
@@ -41,12 +40,12 @@
                                 <input type="checkbox" class="form-check-input select-all-checkbox"
                                        id="selectAllCheckbox" {{ posts is empty ? 'disabled' }}>
                             </th>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Author</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th class="text-center">Actions</th>
+                            <th>{{ ui('admin.table.id') }}</th>
+                            <th>{{ ui('admin.posts.table.title') }}</th>
+                            <th>{{ ui('admin.posts.table.author') }}</th>
+                            <th>{{ ui('admin.posts.table.status') }}</th>
+                            <th>{{ ui('admin.posts.table.created') }}</th>
+                            <th class="text-center">{{ ui('admin.table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,9 +55,9 @@
                                     <div class="empty-state-icon mb-2">
                                         <i class="bi bi-journal-x"></i>
                                     </div>
-                                    <h6 class="text-secondary">No results found.</h6>
+                                    <h6 class="text-secondary">{{ ui('admin.posts.empty') }}</h6>
                                     <a href="{{ urls.posts_new }}" class="btn btn-outline-green mt-2">
-                                        <i class="bi bi-plus-lg me-1"></i> Create the first post
+                                        <i class="bi bi-plus-lg me-1"></i> {{ ui('admin.posts.create_first') }}
                                     </a>
                                 </td>
                             </tr>
@@ -81,18 +80,18 @@
                                     </td>
                                     <td>
                                         <span class="status-published">
-                                            <i class="bi bi-check-circle-fill me-1"></i> Published
+                                            <i class="bi bi-check-circle-fill me-1"></i> {{ ui('admin.status.published') }}
                                         </span>
                                     </td>
                                     <td class="small text-muted">
                                         {{ post.createdAt|date('M j, Y') }}
                                     </td>
                                     <td class="text-center action-icons">
-                                        <a href="{{ edit_urls[post.id] }}" title="Edit post">
+                                        <a href="{{ edit_urls[post.id] }}" title="{{ ui('admin.action.edit_post') }}">
                                             <i class="bi bi-pencil-square me-3"></i>
                                         </a>
                                         <a href="#"
-                                           title="Delete post"
+                                           title="{{ ui('admin.action.delete_post') }}"
                                            class="js-delete-trigger"
                                            data-bs-toggle="modal"
                                            data-bs-target="#confirmDeleteModal"
@@ -113,6 +112,7 @@
                 total: total,
                 page: page,
                 total_pages: total_pages,
+                pagination_pages: pagination_pages,
                 route: 'admin_posts_index',
                 route_params: {
                     q: q,
@@ -121,7 +121,9 @@
         </form>
     </div>
 
-    {% include 'admin/_partials/delete_confirm_modal.html.twig' with { entity_label: 'post' } only %}
+    {% include 'admin/_partials/delete_confirm_modal.html.twig' with {
+        entity_label: "post",
+    } only %}
 
     {# Bulk-delete confirmation modal — specific to the Posts page #}
     <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
@@ -152,7 +154,7 @@
             </div>
         </div>
     </div>
-{% endblock %}
+{% endblock admin_main %}
 
 {% block body_extra %}
     {% include 'admin/_partials/delete_trigger.html.twig' %}

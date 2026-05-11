@@ -41,13 +41,13 @@
 
         <div class="col-md-3 col-lg-2">
             <button type="submit" class="btn btn-outline-green w-100">
-                <i class="bi bi-funnel me-1"></i> Apply
+                <i class="bi bi-funnel me-1"></i> {{ ui('admin.search.apply') }}
             </button>
         </div>
 
         <div class="col-md-12 col-lg-2 text-lg-end">
             <span class="text-muted small">
-                {{ total }} result{{ total == 1 ? '' : 's' }}
+                {{ ui('admin.search.results_footer', { '%count%': total }) }}
             </span>
         </div>
     </form>

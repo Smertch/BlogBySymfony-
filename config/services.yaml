@@ -8,13 +8,23 @@ services:
         autoconfigure: true
         public: false
 
-    App\:
+    'App\':
         resource: '../src/'
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
+            - '../src/SiteUi/locale/'
             - '../src/Kernel.php'
 
-    App\Controller\:
+    'App\Controller\':
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
+
+when@dev:
+    services:
+        EasyCorp\Bundle\EasyAdminBundle\Asset\AssetPackage:
+            class: App\Asset\DevEasyAdminAssetPackage
+            arguments:
+                $requestStack: '@request_stack'
+            tags:
+                - { name: assets.package, package: easyadmin.assets.package }
