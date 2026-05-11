@@ -18,8 +18,13 @@ final class KernelBootTest extends KernelTestCase
         $kernel = self::bootKernel(['environment' => 'test']);
 
         self::assertSame('test', $kernel->getEnvironment());
-        self::assertTrue($kernel->getContainer()->has('doctrine'));
-        self::assertTrue($kernel->getContainer()->has('twig'));
+
+        // Use the test container (self::getContainer()) — the production container
+        // returned by $kernel->getContainer() does not expose private services
+        // like "twig" or "doctrine".
+        $container = self::getContainer();
+        self::assertTrue($container->has('doctrine'));
+        self::assertTrue($container->has('twig'));
     }
 
     public function testRoutesAreLoaded(): void

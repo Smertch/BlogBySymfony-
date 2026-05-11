@@ -1,0 +1,5 @@
+twig_component:
+    # Activates the modern anonymous-component lookup (so that namespaced
+    # templates like "@ea/components/ActionMenu/ActionList.html.twig" are found
+    # for components named "ea:ActionMenu:ActionList"). EasyAdmin relies on this.
+    anonymous_template_directory: 'components/'

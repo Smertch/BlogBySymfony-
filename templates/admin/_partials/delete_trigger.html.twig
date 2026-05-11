@@ -1,0 +1,24 @@
+{#
+    Shared JS that wires every `.js-delete-trigger` link/button to the single
+    confirm-delete modal (see `_partials/delete_confirm_modal.html.twig`).
+    Each trigger must carry `data-action-url`, `data-csrf-token`,
+    `data-entity-name` attributes.
+#}
+<script>
+    (function () {
+        const form = document.getElementById('deleteEntityForm');
+        const csrfInput = document.getElementById('deleteEntityCsrf');
+        const nameLabel = document.getElementById('confirmDeleteEntityName');
+        if (!form) {
+            return;
+        }
+        document.querySelectorAll('.js-delete-trigger').forEach(function (trigger) {
+            trigger.addEventListener('click', function (event) {
+                event.preventDefault();
+                form.action = trigger.getAttribute('data-action-url') || '';
+                csrfInput.value = trigger.getAttribute('data-csrf-token') || '';
+                nameLabel.textContent = trigger.getAttribute('data-entity-name') || '';
+            });
+        });
+    })();
+</script>

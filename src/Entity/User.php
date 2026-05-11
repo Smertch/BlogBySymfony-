@@ -133,6 +133,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, GoogleT
         return UserRole::from($this->roleId);
     }
 
+    public function getRoleLabel(): string
+    {
+        return $this->getRole()->label();
+    }
+
     public function setRole(UserRole $role): self
     {
         $this->roleId = $role->value;

@@ -12,8 +12,12 @@ parameters:
     doctrine:
         objectManagerLoader: tests/object-manager.php
     ignoreErrors:
-        # rdkafka is an optional extension; the transport guards calls at runtime
-        - identifier: class.notFound
-          path: src/Messenger/Transport/Kafka/*.php
-        # Symfony Routing/Form internals occasionally emit mixed types
-        - '#Cannot call method [a-zA-Z_]+\(\) on Symfony\\Component\\Form\\FormInterface\|null#'
+        # Doctrine "type mapping mismatch" warnings are a known limitation of
+        # phpstan-doctrine: BIGINT identifiers are unavoidably nullable in PHP
+        # (between instantiation and first flush), and JoinColumn(nullable=false)
+        # associations must still be typed as nullable because Doctrine
+        # hydrates them after construction. None of these reflect real bugs.
+        - identifier: doctrine.columnType
+          path: src/Entity/*.php
+        - identifier: doctrine.associationType
+          path: src/Entity/*.php

@@ -1,0 +1,54 @@
+{#
+    Shared search/filter card for admin list pages (Users, Posts, ...).
+
+    Required:
+      action_url        – form GET action URL
+      query             – current search value (string)
+      query_placeholder – input placeholder
+      total             – number of total results to show next to the form
+      hidden_fields     – map of <input type="hidden"> to keep EasyAdmin routing on submit
+
+    Optional:
+      filter = { name: 'twofa', value: 'all', options: [{ value, label }, ...] }
+#}
+<div class="card-dashboard card p-3 mb-4">
+    <form method="get" action="{{ action_url }}" class="row g-3 align-items-center">
+        {% for name, value in hidden_fields ?? {} %}
+            <input type="hidden" name="{{ name }}" value="{{ value }}">
+        {% endfor %}
+
+        <div class="col-md-6 col-lg-{{ filter is defined and filter is not null ? '5' : '8' }}">
+            <div class="search-wrapper">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" class="form-control"
+                       placeholder="{{ query_placeholder }}" value="{{ query }}">
+            </div>
+        </div>
+
+        {% if filter is defined and filter is not null %}
+            <div class="col-md-3 col-lg-3">
+                <select name="{{ filter.name }}" class="form-select"
+                        style="border-radius: 50px; border-color: #c2dbc2;"
+                        onchange="this.form.submit()">
+                    {% for opt in filter.options %}
+                        <option value="{{ opt.value }}" {{ filter.value == opt.value ? 'selected' }}>
+                            {{ opt.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        <div class="col-md-3 col-lg-2">
+            <button type="submit" class="btn btn-outline-green w-100">
+                <i class="bi bi-funnel me-1"></i> Apply
+            </button>
+        </div>
+
+        <div class="col-md-12 col-lg-2 text-lg-end">
+            <span class="text-muted small">
+                {{ total }} result{{ total == 1 ? '' : 's' }}
+            </span>
+        </div>
+    </form>
+</div>

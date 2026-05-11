@@ -1,22 +1,496 @@
-{% extends 'layouts/default.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% block title %}Home page{% endblock %}
+{% block title %}Blogosphere — feed{% endblock %}
 
-{% block content %}
-    <div class="conteiner my-5">
-        <h1>Posts</h1>
+{% block stylesheets %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #2c6e2f;
+            --primary-light: #e9f5e9;
+            --primary-soft: #d4e9d4;
+            --border-green: #c2dbc2;
+            --accent-hover: #3a8a3e;
+        }
+        * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #f0f7f0 0%, #e8f3e8 100%); }
 
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border-bottom: 1px solid var(--border-green);
+            padding: 12px 0;
+        }
+        .logo-icon {
+            background-color: var(--primary-light);
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            color: var(--primary-green);
+        }
+        .btn-primary-green {
+            background-color: var(--primary-green);
+            border: none;
+            border-radius: 40px;
+            padding: 8px 22px;
+            font-weight: 600;
+            color: white;
+            transition: 0.25s;
+        }
+        .btn-primary-green:hover {
+            background-color: #236b26;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(44, 110, 47, 0.25);
+        }
+        .btn-outline-green {
+            border: 1.5px solid var(--primary-green);
+            color: var(--primary-green);
+            background: white;
+            border-radius: 40px;
+            padding: 6px 18px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .btn-outline-green:hover {
+            background-color: var(--primary-green);
+            color: white;
+        }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #d6d6d6;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-weight: 500;
+            color: #555;
+            transition: 0.2s;
+        }
+        .btn-logout:hover {
+            background: #f4f4f4;
+            color: #1c4d1c;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid rgba(70, 120, 70, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 20, 0, 0.04);
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+        .post-header {
+            border-bottom: 1px solid #edf3ed;
+            padding: 1.2rem 1.5rem;
+            background: #fefef8;
+        }
+        .post-body { padding: 1.5rem; }
+        .post-body p {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            color: #2f3e2f;
+        }
+
+        .reaction-btn {
+            background: #f8faf8;
+            border: 1px solid #e2efe2;
+            border-radius: 60px;
+            padding: 8px 20px;
+            transition: 0.2s;
+            color: #446d46;
+            font-weight: 500;
+        }
+        .reaction-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+        }
+        .reaction-btn.active {
+            background: var(--primary-green);
+            border-color: var(--primary-green);
+            color: white;
+        }
+
+        .comment-item {
+            background: #fbfefb;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border: 1px solid #e3f0e3;
+            transition: 0.1s;
+        }
+        .comment-avatar {
+            width: 36px;
+            height: 36px;
+            background: #e0f0e0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-green);
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .form-control-custom {
+            border-radius: 60px;
+            border: 1px solid #cddfcd;
+            padding: 12px 18px;
+            background: white;
+        }
+        .form-control-custom:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(44, 110, 47, 0.1);
+        }
+        textarea.form-control-custom { border-radius: 18px; }
+
+        .badge-date {
+            background: #f0f5f0;
+            color: #517d54;
+            font-size: 0.7rem;
+            padding: 5px 12px;
+            border-radius: 30px;
+        }
+
+        .empty-comments {
+            background: #fafdfa;
+            border-radius: 24px;
+            padding: 28px;
+            text-align: center;
+            color: #8baa8b;
+        }
+
+        .modal-content-green {
+            border-radius: 28px;
+            border-top: 4px solid var(--primary-green);
+        }
+
+        .empty-feed {
+            background: white;
+            border-radius: 28px;
+            border: 1px dashed var(--border-green);
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .post-header { padding: 1rem; }
+            .post-body { padding: 1rem; }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% set current_user = app.user %}
+
+<nav class="navbar navbar-custom sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ path('home') }}" style="color: #1c4d1c;">
+            <span class="logo-icon"><i class="bi bi-journal-bookmark-fill fs-5"></i></span>
+            <span>Blogosphere</span>
+        </a>
+        <div class="d-flex gap-3 align-items-center">
+            {% if current_user %}
+                <span class="d-none d-md-block text-secondary small">
+                    <i class="bi bi-person-circle me-1"></i> {{ current_user.email }}
+                </span>
+                {% if current_user.isAdmin() %}
+                    <a href="{{ path('admin') }}" class="btn btn-outline-green">
+                        <i class="bi bi-speedometer2 me-1"></i> Admin
+                    </a>
+                {% endif %}
+                <button class="btn btn-primary-green" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                    <i class="bi bi-pencil-square me-1"></i> New post
+                </button>
+                <form method="POST" action="{{ path('logout') }}" class="m-0">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                    <button type="submit" class="btn btn-logout">Log out</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4 py-md-5">
+    {% for label, messages in app.flashes(['success', 'error', 'status']) %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : 'success' }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #1e401e;">
+                <i class="bi bi-chat-left-text-fill me-2" style="color: #2c6e2f;"></i>Posts feed
+            </h2>
+            <p class="text-muted small mb-0">Share thoughts, leave reactions and comments</p>
+        </div>
+        <form method="get" action="{{ path('home') }}" class="mt-2 mt-sm-0">
+            <div class="input-group" style="max-width: 280px;">
+                <span class="input-group-text bg-white border-end-0 rounded-pill" style="border-color: #cddfcd;">
+                    <i class="bi bi-search text-success"></i>
+                </span>
+                <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 rounded-pill" placeholder="Search posts...">
+            </div>
+        </form>
+    </div>
+
+    <div id="postsContainer">
         {% for post in posts %}
-            <div class="mb3">
-                <h3>{{ post.title }}</h3>
-                Autor: {{ post.user ? post.user.name : '...' }}
+            {% set is_owner = current_user and post.user and post.user.id == current_user.id %}
+            {% set can_edit = is_owner or (current_user and current_user.isAdmin()) %}
+            {% set liked = post.isLikedBy(current_user) %}
 
-                | <a href="#" class="text-primary">Edit</a>
-                | <a href="#" class="text-danger">Delete</a>
+            <div class="post-card mb-4" id="post-{{ post.id }}">
+                <div class="post-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <h4 class="fw-bold mb-1" style="color: #1b4b1b;">{{ post.title }}</h4>
+                        <div class="d-flex gap-2 flex-wrap mt-1">
+                            <span class="badge-date">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                {{ post.createdAt|date('M j, Y H:i') }}
+                            </span>
+                            <span class="badge-date">
+                                <i class="bi bi-person-circle me-1"></i>
+                                {{ post.user ? post.user.name : 'Unknown' }}
+                            </span>
+                        </div>
+                    </div>
+                    {% if can_edit %}
+                        <div class="mt-2 mt-sm-0 d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-green edit-post-btn"
+                                    data-post-id="{{ post.id }}"
+                                    data-post-title="{{ post.title }}"
+                                    data-post-content="{{ post.content }}"
+                                    data-edit-token="{{ csrf_token('post_update_' ~ post.id) }}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editPostModal">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <form method="post"
+                                  action="{{ path('post_remove', {id: post.id}) }}"
+                                  class="m-0"
+                                  onsubmit="return confirm('Delete this post permanently?');">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <input type="hidden" name="_token" value="{{ csrf_token('post_remove_' ~ post.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
 
+                <div class="post-body">
+                    <p class="fs-6 mb-3">{{ post.content }}</p>
+
+                    <div class="d-flex flex-wrap align-items-center gap-3 mt-3 pt-1">
+                        <form method="post" action="{{ path('post_like', {id: post.id}) }}" class="m-0">
+                            <input type="hidden" name="_token" value="{{ csrf_token('post_like_' ~ post.id) }}">
+                            <button type="submit" class="reaction-btn {{ liked ? 'active' : '' }}">
+                                <i class="bi {{ liked ? 'bi-heart-fill' : 'bi-heart' }} me-1"></i>
+                                <span>{{ post.likeCount }}</span>
+                            </button>
+                        </form>
+                        <span class="small text-secondary">
+                            <i class="bi bi-chat-dots me-1"></i>{{ post.commentCount }} comments
+                        </span>
+                    </div>
+
+                    <div class="mt-4 pt-2 border-top border-light">
+                        <h6 class="fw-semibold mb-3">
+                            <i class="bi bi-chat-left-text me-1"></i>
+                            Comments ({{ post.commentCount }})
+                        </h6>
+
+                        <div class="comments-list mb-3">
+                            {% if post.commentCount == 0 %}
+                                <div class="empty-comments small py-3 px-2">
+                                    <i class="bi bi-chat"></i> No comments yet. Be the first!
+                                </div>
+                            {% else %}
+                                {% for comment in post.comments %}
+                                    {% set comment_owner = current_user and comment.user and comment.user.id == current_user.id %}
+                                    {% set can_delete_comment = comment_owner or (current_user and current_user.isAdmin()) %}
+                                    <div class="comment-item d-flex gap-3 align-items-start">
+                                        <div class="comment-avatar"><i class="bi bi-person"></i></div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                                <strong class="small" style="color: #2c6e2f;">
+                                                    {{ comment.user ? comment.user.name : 'Unknown' }}
+                                                </strong>
+                                                <span class="text-muted small">
+                                                    {{ comment.createdAt|date('M j, Y H:i') }}
+                                                </span>
+                                            </div>
+                                            <p class="mb-0 mt-1 small">{{ comment.body }}</p>
+                                        </div>
+                                        {% if can_delete_comment %}
+                                            <form method="post" action="{{ path('comment_remove', {id: comment.id}) }}" class="m-0">
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('comment_delete_' ~ comment.id) }}">
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-link text-danger p-0"
+                                                        title="Delete comment"
+                                                        onclick="return confirm('Delete this comment?');">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <form method="post" action="{{ path('post_comment_create', {id: post.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('post_comment_' ~ post.id) }}">
+                            <div class="input-group">
+                                <input type="text"
+                                       name="body"
+                                       class="form-control form-control-custom"
+                                       placeholder="Write a comment..."
+                                       required
+                                       maxlength="2000">
+                                <button type="submit" class="btn btn-primary-green">
+                                    <i class="bi bi-send"></i> Send
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         {% else %}
-            <p>No posts ...</p>
+            <div class="empty-feed">
+                <i class="bi bi-chat-square-dots fs-1" style="color: #bbddbb;"></i>
+                <h5 class="mt-3">
+                    {% if search %}Nothing found for "{{ search }}"{% else %}No posts yet{% endif %}
+                </h5>
+                <p class="text-muted">
+                    {% if search %}
+                        Try a different search query.
+                    {% else %}
+                        Be the first to publish something.
+                    {% endif %}
+                </p>
+                {% if current_user %}
+                    <button class="btn btn-primary-green" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                        <i class="bi bi-plus-lg"></i> Create post
+                    </button>
+                {% endif %}
+            </div>
         {% endfor %}
     </div>
+</div>
+
+{% if current_user %}
+    <div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <form method="post" action="{{ path('post_create') }}" class="modal-content modal-content-green">
+                <input type="hidden" name="_token" value="{{ csrf_token('post_create') }}">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-journal-plus me-2" style="color: #2c6e2f;"></i>Create new post
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                        <input type="text"
+                               name="title"
+                               class="form-control form-control-custom"
+                               placeholder="What do you want to share?"
+                               required
+                               maxlength="255">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Content</label>
+                        <textarea name="content"
+                                  class="form-control form-control-custom"
+                                  rows="5"
+                                  placeholder="Post body..."></textarea>
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle"></i>
+                        After publishing you can react to and comment on your post.
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-green rounded-pill px-4">Publish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editPostModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <form method="post" id="editPostForm" class="modal-content modal-content-green">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="_token" id="editPostToken" value="">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square me-2" style="color: #2c6e2f;"></i>Edit post
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Title</label>
+                        <input type="text"
+                               name="title"
+                               id="editPostTitle"
+                               class="form-control form-control-custom"
+                               required
+                               maxlength="255">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Content</label>
+                        <textarea name="content"
+                                  id="editPostContent"
+                                  class="form-control form-control-custom"
+                                  rows="5"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-green rounded-pill">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const editForm = document.getElementById('editPostForm');
+            if (!editForm) return;
+
+            const titleInput = document.getElementById('editPostTitle');
+            const contentInput = document.getElementById('editPostContent');
+            const tokenInput = document.getElementById('editPostToken');
+            // /posts/0 is used only as a template; the trailing id is replaced per click.
+            const urlTemplate = '{{ path('post_update', {id: 0}) }}';
+
+            document.querySelectorAll('.edit-post-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const id = btn.getAttribute('data-post-id');
+                    titleInput.value = btn.getAttribute('data-post-title') || '';
+                    contentInput.value = btn.getAttribute('data-post-content') || '';
+                    tokenInput.value = btn.getAttribute('data-edit-token') || '';
+                    editForm.setAttribute('action', urlTemplate.replace(/\/0$/, '/' + id));
+                });
+            });
+        })();
+    </script>
 {% endblock %}

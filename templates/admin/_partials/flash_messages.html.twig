@@ -1,0 +1,8 @@
+{# Render Symfony flash messages in the green theme. #}
+{% for type, messages in app.flashes(['success', 'danger', 'warning', 'info']) %}
+    {% for message in messages %}
+        <div class="alert alert-{{ type == 'danger' ? 'danger' : (type == 'warning' ? 'warning' : (type == 'info' ? 'info' : 'success')) }} rounded-pill px-4 py-2 mb-3 shadow-sm">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}

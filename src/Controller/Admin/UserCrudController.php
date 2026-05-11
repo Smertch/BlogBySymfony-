@@ -6,22 +6,37 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Enum\UserRole;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Attribute\Route;
 
+#[AdminRoute(path: '/users', name: 'users')]
 final class UserCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly UserPasswordHasherInterface $hasher,
         private readonly RequestStack $requestStack,
+        private readonly UserRepository $userRepository,
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly EntityManagerInterface $em,
     ) {
     }
 
@@ -45,18 +60,121 @@ final class UserCrudController extends AbstractCrudController
         yield EmailField::new('email')->setLabel('Email address')->setRequired(true);
         yield TextField::new('plainPassword', 'Password')
             ->onlyOnForms()
-            ->setFormType(\Symfony\Component\Form\Extension\Core\Type\PasswordType::class)
+            ->setFormType(PasswordType::class)
             ->setFormTypeOption('mapped', false)
             ->setRequired($pageName === Crud::PAGE_NEW);
-        yield ChoiceField::new('role')
+        yield ChoiceField::new('role', 'Role')
             ->setChoices(array_combine(
                 array_map(fn (UserRole $r) => $r->label(), UserRole::cases()),
                 UserRole::cases(),
             ))
-            ->renderAsBadges();
+            ->onlyOnForms();
         yield DateTimeField::new('twoFactorConfirmedAt')->setLabel('2FA confirmed')->hideOnForm();
-        yield DateTimeField::new('createdAt')->onlyOnIndex();
-        yield DateTimeField::new('updatedAt')->onlyOnIndex();
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        // DETAIL/DELETE are disabled in EasyAdmin — delete is served by the custom
+        // route below; EDIT stays enabled so the row-action link can open the EasyAdmin form.
+        return $actions->disable(Action::DETAIL, Action::DELETE);
+    }
+
+    /**
+     * Custom index rendering aligned with the green-themed Users management mockup.
+     *
+     * Replaces EasyAdmin's default list/table with our own template that uses
+     * server-side search, 2FA filter and pagination.
+     */
+    public function index(AdminContext $context): Response
+    {
+        $request = $this->requestStack->getCurrentRequest();
+
+        $query = trim((string) ($request?->query->get('q') ?? ''));
+        $twofa = (string) ($request?->query->get('twofa') ?? 'all');
+        $page = max(1, (int) ($request?->query->get('page') ?? 1));
+        $perPage = 10;
+
+        $result = $this->userRepository->searchPaginated(
+            $query !== '' ? $query : null,
+            $twofa,
+            $page,
+            $perPage,
+        );
+
+        $total = $result['total'];
+        $totalPages = (int) max(1, (int) ceil($total / $perPage));
+
+        // Build edit URLs per user. AdminUrlGenerator::generateUrl() resets its
+        // internal parameter bag after each call, so consecutive calls are safe.
+        $editUrls = [];
+        foreach ($result['items'] as $u) {
+            $editUrls[$u->getId()] = $this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction(Crud::PAGE_EDIT)
+                ->setEntityId($u->getId())
+                ->generateUrl();
+        }
+
+        $usersIndexUrl = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Crud::PAGE_INDEX)
+            ->generateUrl();
+
+        $usersNewUrl = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Crud::PAGE_NEW)
+            ->generateUrl();
+
+        $postsIndexUrl = $this->adminUrlGenerator
+            ->setController(PostCrudController::class)
+            ->setAction(Crud::PAGE_INDEX)
+            ->generateUrl();
+
+        return $this->render('admin/users/index.html.twig', [
+            'users' => $result['items'],
+            'total' => $total,
+            'q' => $query,
+            'twofa' => $twofa,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_pages' => $totalPages,
+            'edit_urls' => $editUrls,
+            'urls' => [
+                'users_new' => $usersNewUrl,
+                'users_index' => $usersIndexUrl,
+                'posts_index' => $postsIndexUrl,
+            ],
+            'nav_urls' => [
+                'users_index' => $usersIndexUrl,
+                'posts_index' => $postsIndexUrl,
+            ],
+        ]);
+    }
+
+    /**
+     * Delete handler called from the custom Users index page.
+     * Validates a per-row CSRF token, removes the entity and redirects back to the list.
+     */
+    #[Route('/admin/users/{id}/delete', name: 'admin_users_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function deleteUser(User $user, Request $request): Response
+    {
+        $token = (string) $request->request->get('_token', '');
+        $indexUrl = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Crud::PAGE_INDEX)
+            ->generateUrl();
+
+        if (!$this->isCsrfTokenValid('delete-user-'.$user->getId(), $token)) {
+            $this->addFlash('danger', 'Invalid CSRF token.');
+
+            return new RedirectResponse($indexUrl);
+        }
+
+        $this->em->remove($user);
+        $this->em->flush();
+        $this->addFlash('success', \sprintf('User "%s" deleted.', $user->getName() ?: $user->getEmail()));
+
+        return new RedirectResponse($indexUrl);
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void

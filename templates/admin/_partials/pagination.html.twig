@@ -1,0 +1,38 @@
+{#
+    Shared pagination footer for admin tables.
+
+    Required:
+      total        – total number of results (int)
+      page         – current page (int)
+      total_pages  – total number of pages (int)
+      route        – Symfony route name (e.g. 'admin')
+      route_params – base params (the partial adds `page`)
+#}
+<div class="d-flex justify-content-between align-items-center p-3 bg-white border-top">
+    <div class="small text-muted">
+        {{ total }} result{{ total == 1 ? '' : 's' }}
+        {% if total_pages > 1 %}
+            · page {{ page }} of {{ total_pages }}
+        {% endif %}
+    </div>
+
+    {% if total_pages > 1 %}
+        <nav>
+            <ul class="pagination pagination-custom mb-0">
+                <li class="page-item {{ page == 1 ? 'disabled' }}">
+                    <a class="page-link" href="{{ path(route, route_params|merge({ page: page - 1 })) }}">«</a>
+                </li>
+
+                {% for p in 1..total_pages %}
+                    <li class="page-item {{ p == page ? 'active' }}">
+                        <a class="page-link" href="{{ path(route, route_params|merge({ page: p })) }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+
+                <li class="page-item {{ page == total_pages ? 'disabled' }}">
+                    <a class="page-link" href="{{ path(route, route_params|merge({ page: page + 1 })) }}">»</a>
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
+</div>
