@@ -1,7 +1,261 @@
+{% extends 'base.html.twig' %}
 
-<h2>Welcome {{ app.user.name }}</h2>
-<br>
-<form method="post" action="{{ path('logout') }}">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-    <button type="submit">Logout</button>
-</form>
+{% block title %}{{ ui('account.page_title') }} · {{ ui('nav.brand') }}{% endblock %}
+
+{% block stylesheets %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #2c6e2f;
+            --primary-light: #e9f5e9;
+            --border-green: #c2dbc2;
+        }
+        * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(135deg, #f0f7f0 0%, #e8f3e8 100%); }
+
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border-bottom: 1px solid var(--border-green);
+            padding: 12px 0;
+        }
+        .logo-icon {
+            background-color: var(--primary-light);
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            color: var(--primary-green);
+        }
+        .btn-primary-green {
+            background-color: var(--primary-green);
+            border: none;
+            border-radius: 40px;
+            padding: 8px 22px;
+            font-weight: 600;
+            color: white;
+        }
+        .btn-primary-green:hover {
+            background-color: #236b26;
+            color: white;
+        }
+        .btn-outline-green {
+            border: 1.5px solid var(--primary-green);
+            color: var(--primary-green);
+            background: white;
+            border-radius: 40px;
+            padding: 6px 18px;
+            font-weight: 500;
+        }
+        .btn-outline-green:hover {
+            background-color: var(--primary-green);
+            color: white;
+        }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #d6d6d6;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-weight: 500;
+            color: #555;
+        }
+        .account-card {
+            background: white;
+            border-radius: 28px;
+            border: 1px solid rgba(70, 120, 70, 0.12);
+            box-shadow: 0 8px 24px rgba(0, 20, 0, 0.04);
+        }
+        .form-control-custom {
+            border-radius: 60px;
+            border: 1px solid #cddfcd;
+            padding: 12px 18px;
+        }
+        .form-control-custom:focus {
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(44, 110, 47, 0.1);
+        }
+        .post-snippet {
+            color: #4a5d4a;
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+        .badge-date {
+            background: #f0f5f0;
+            color: #517d54;
+            font-size: 0.72rem;
+            padding: 5px 12px;
+            border-radius: 30px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-custom sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ path('home') }}" style="color: #1c4d1c;">
+            <span class="logo-icon"><i class="bi bi-journal-bookmark-fill fs-5"></i></span>
+            <span>{{ ui('nav.brand') }}</span>
+        </a>
+        <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
+            {% include '_language_switcher.html.twig' %}
+            <span class="d-none d-md-block text-secondary small">
+                <i class="bi bi-person-circle me-1"></i> {{ user.email }}
+            </span>
+            {% if user.isAdmin() %}
+                <a href="{{ path('admin') }}" class="btn btn-outline-green btn-sm">
+                    <i class="bi bi-speedometer2 me-1"></i> {{ ui('nav.admin') }}
+                </a>
+            {% endif %}
+            <a href="{{ path('home') }}" class="btn btn-outline-green btn-sm">
+                <i class="bi bi-house-door me-1"></i> {{ ui('nav.feed') }}
+            </a>
+            <button class="btn btn-primary-green btn-sm" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                <i class="bi bi-pencil-square me-1"></i> {{ ui('nav.new_post') }}
+            </button>
+            <form method="POST" action="{{ path('logout') }}" class="m-0">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                <button type="submit" class="btn btn-logout btn-sm">{{ ui('nav.logout') }}</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4 py-md-5">
+    {% for label, messages in app.flashes(['success', 'error', 'status']) %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : 'success' }} alert-dismissible fade show rounded-4 border-0 shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ ui('aria.close') }}"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <h1 class="fw-bold mb-1" style="color: #1e401e;">
+        <i class="bi bi-person-heart me-2" style="color: #2c6e2f;"></i>{{ ui('account.heading') }}
+    </h1>
+    <p class="text-muted small mb-4">{{ ui('account.page_title') }}</p>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="account-card p-4 p-md-4">
+                <h2 class="h5 fw-bold mb-3" style="color: #1b4b1b;">
+                    <i class="bi bi-journal-text me-2"></i>{{ ui('account.posts.title') }}
+                </h2>
+
+                {% if posts is empty %}
+                    <p class="text-muted mb-0">{{ ui('account.posts.empty') }}</p>
+                {% else %}
+                    <ul class="list-unstyled mb-0">
+                        {% for post in posts %}
+                            {% set excerpt = post.content|replace({'\n': ' '})|trim %}
+                            {% if excerpt|length > 180 %}
+                                {% set excerpt = excerpt|slice(0, 180) ~ '…' %}
+                            {% endif %}
+                            <li class="border-bottom border-light py-3{% if loop.last %} border-bottom-0 pb-0{% endif %}{% if not loop.first %} pt-3{% endif %}">
+                                <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+                                    <div class="flex-grow-1 min-w-0">
+                                        <h3 class="h6 fw-bold mb-1" style="color: #1b4b1b;">{{ post.title }}</h3>
+                                        <p class="post-snippet mb-2">{{ excerpt }}</p>
+                                        <span class="badge-date">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            {{ ui('account.posts.meta') }} {{ post.createdAt|date('M j, Y H:i') }}
+                                        </span>
+                                    </div>
+                                    <a href="{{ path('home') }}#post-{{ post.id }}" class="btn btn-outline-green btn-sm flex-shrink-0">
+                                        {{ ui('account.posts.open_feed') }}
+                                    </a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="account-card p-4 mb-4">
+                <h2 class="h5 fw-bold mb-3" style="color: #1b4b1b;">
+                    <i class="bi bi-person-lines-fill me-2"></i>{{ ui('account.profile.title') }}
+                </h2>
+                <p class="small text-muted mb-3">{{ ui('account.profile.email_note') }}</p>
+
+                {{ form_start(profile_form, { action: path('account_profile_update'), attr: { class: 'needs-validation' } }) }}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ ui('account.field.display_name') }}</label>
+                        {{ form_widget(profile_form.name, { attr: { class: 'form-control form-control-custom' } }) }}
+                        {{ form_errors(profile_form.name) }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ ui('account.field.email') }}</label>
+                        <input type="email" class="form-control form-control-custom bg-light" value="{{ user.email }}" readonly tabindex="-1" title="{{ ui('account.profile.email_note') }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary-green">{{ ui('account.btn.save_profile') }}</button>
+                {{ form_end(profile_form) }}
+            </div>
+
+            <div class="account-card p-4">
+                <h2 class="h5 fw-bold mb-3" style="color: #1b4b1b;">
+                    <i class="bi bi-key me-2"></i>{{ ui('account.password.title') }}
+                </h2>
+
+                {{ form_start(password_form, { action: path('account_password_update'), attr: { class: 'needs-validation' } }) }}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ ui('account.field.current_password') }}</label>
+                        {{ form_widget(password_form.currentPassword, { attr: { class: 'form-control form-control-custom', autocomplete: 'current-password' } }) }}
+                        {{ form_errors(password_form.currentPassword) }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ ui('account.field.new_password') }}</label>
+                        {{ form_widget(password_form.newPassword.first, { attr: { class: 'form-control form-control-custom', autocomplete: 'new-password' } }) }}
+                        {{ form_errors(password_form.newPassword.first) }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ ui('account.field.repeat_password') }}</label>
+                        {{ form_widget(password_form.newPassword.second, { attr: { class: 'form-control form-control-custom', autocomplete: 'new-password' } }) }}
+                        {{ form_errors(password_form.newPassword.second) }}
+                    </div>
+                    {{ form_errors(password_form.newPassword) }}
+                    <button type="submit" class="btn btn-outline-green">{{ ui('account.btn.change_password') }}</button>
+                {{ form_end(password_form) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Reuse create-post modal from feed — include minimal duplicate #}
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form method="post" action="{{ path('post_create') }}" class="modal-content" style="border-radius: 28px; border-top: 4px solid var(--primary-green);">
+            <input type="hidden" name="_token" value="{{ csrf_token('post_create') }}">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-journal-plus me-2" style="color: #2c6e2f;"></i>{{ ui('modal.create_new_post') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ ui('aria.close') }}"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ ui('label.title') }} <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control form-control-custom" placeholder="{{ ui('modal.title_placeholder') }}" required maxlength="255">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ ui('label.content') }}</label>
+                    <textarea name="content" class="form-control form-control-custom" rows="5" placeholder="{{ ui('modal.content_placeholder') }}" style="border-radius: 18px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">{{ ui('modal.cancel') }}</button>
+                <button type="submit" class="btn btn-primary-green rounded-pill px-4">{{ ui('modal.publish') }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

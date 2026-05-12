@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Enum\SiteLanguage;
 use App\Form\ForgotPasswordFormType;
 use App\Form\RegistrationFormType;
 use App\Form\ResetPasswordFormType;
 use App\Message\RegistrationWelcomeMail;
 use App\Repository\PasswordResetTokenRepository;
 use App\Repository\UserRepository;
+use App\Service\SiteUiTranslator;
+use App\SiteUi\SiteLanguagePreference;
+use LogicException;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -27,6 +31,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class SecurityController extends AbstractController
 {
+    public function __construct(
+        private readonly SiteUiTranslator $siteUi,
+    ) {
+    }
+
     #[Route(path: '/login', name: 'login', methods: ['GET'])]
     public function loginShow(AuthenticationUtils $authenticationUtils): Response
     {
@@ -47,13 +56,13 @@ final class SecurityController extends AbstractController
     #[Route(path: '/login', name: 'login.store', methods: ['POST'])]
     public function loginStore(): Response
     {
-        throw new \LogicException('This method is intercepted by the form_login authenticator in security.yaml.');
+        throw new LogicException('This method is intercepted by the form_login authenticator in security.yaml.');
     }
 
     #[Route(path: '/logout', name: 'logout', methods: ['POST', 'GET'])]
     public function logout(): never
     {
-        throw new \LogicException('Intercepted by the logout listener in security.yaml.');
+        throw new LogicException('Intercepted by the logout listener in security.yaml.');
     }
 
     #[Route(path: '/register', name: 'register', methods: ['GET'])]
@@ -87,8 +96,8 @@ final class SecurityController extends AbstractController
         }
 
         $data = $form->getData();
-        if ($users->findByEmail((string) $data['email']) !== null) {
-            $this->addFlash('error', 'The email has already been taken.');
+        if (null !== $users->findByEmail((string) $data['email'])) {
+            $this->addFlash('error', $this->siteUi->trans('flash.email_taken'));
 
             return $this->redirectToRoute('register');
         }
@@ -97,14 +106,23 @@ final class SecurityController extends AbstractController
         $user->setName((string) $data['name']);
         $user->setEmail((string) $data['email']);
         $user->setPassword($hasher->hashPassword($user, (string) $form->get('password')->getData()));
+
+        $guestLangRaw = $request->getSession()->get(SiteLanguagePreference::SESSION_KEY);
+        if (\is_string($guestLangRaw)) {
+            $guestLang = SiteLanguage::tryFrom(strtoupper(trim($guestLangRaw)));
+            if (null !== $guestLang) {
+                $user->setSiteLanguage($guestLang);
+            }
+        }
+
         $users->save($user);
 
         $userId = $user->getId();
-        if ($userId !== null) {
+        if (null !== $userId) {
             $bus->dispatch(new RegistrationWelcomeMail($userId));
         }
 
-        $this->addFlash('success', 'Account created. Please sign in.');
+        $this->addFlash('success', $this->siteUi->trans('flash.account_created'));
 
         return $this->redirectToRoute('login');
     }
@@ -139,9 +157,9 @@ final class SecurityController extends AbstractController
         $email = (string) $form->get('email')->getData();
         $user = $users->findByEmail($email);
 
-        if ($user !== null) {
+        if (null !== $user) {
             $rawToken = bin2hex(random_bytes(32));
-            $tokens->upsert($email, password_hash($rawToken, PASSWORD_BCRYPT));
+            $tokens->upsert($email, password_hash($rawToken, \PASSWORD_BCRYPT));
 
             $resetUrl = $this->generateUrl(
                 'password.reset',
@@ -161,7 +179,7 @@ final class SecurityController extends AbstractController
             $mailer->send($mail);
         }
 
-        $this->addFlash('status', 'We have emailed your password reset link!');
+        $this->addFlash('status', $this->siteUi->trans('flash.password_reset_sent'));
 
         return $this->redirectToRoute('password.request');
     }
@@ -206,15 +224,15 @@ final class SecurityController extends AbstractController
         $rawToken = (string) $data['token'];
 
         $row = $tokens->findByEmail($email);
-        if ($row === null || !password_verify($rawToken, $row->getToken())) {
-            $this->addFlash('error', 'This password reset token is invalid.');
+        if (null === $row || !password_verify($rawToken, $row->getToken())) {
+            $this->addFlash('error', $this->siteUi->trans('flash.password_reset_invalid_token'));
 
             return $this->redirectToRoute('login');
         }
 
         $user = $users->findByEmail($email);
-        if ($user === null) {
-            $this->addFlash('error', 'User not found.');
+        if (null === $user) {
+            $this->addFlash('error', $this->siteUi->trans('flash.user_not_found'));
 
             return $this->redirectToRoute('login');
         }
@@ -223,7 +241,7 @@ final class SecurityController extends AbstractController
         $users->save($user);
         $tokens->deleteByEmail($email);
 
-        $this->addFlash('status', 'Your password has been reset!');
+        $this->addFlash('status', $this->siteUi->trans('flash.password_reset_done'));
 
         return $this->redirectToRoute('login');
     }
@@ -238,6 +256,6 @@ final class SecurityController extends AbstractController
     #[Route(path: '/2fa_check', name: '2fa_login_check', methods: ['POST'])]
     public function twoFactorCheck(): never
     {
-        throw new \LogicException('Intercepted by the two_factor firewall listener.');
+        throw new LogicException('Intercepted by the two_factor firewall listener.');
     }
 }

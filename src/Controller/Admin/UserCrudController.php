@@ -7,6 +7,8 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
+use App\Service\SiteUiTranslator;
+use App\Util\AdminPagination;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -37,6 +39,7 @@ final class UserCrudController extends AbstractCrudController
         private readonly UserRepository $userRepository,
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly EntityManagerInterface $em,
+        private readonly SiteUiTranslator $siteUi,
     ) {
     }
 
@@ -62,10 +65,10 @@ final class UserCrudController extends AbstractCrudController
             ->onlyOnForms()
             ->setFormType(PasswordType::class)
             ->setFormTypeOption('mapped', false)
-            ->setRequired($pageName === Crud::PAGE_NEW);
+            ->setRequired(Crud::PAGE_NEW === $pageName);
         yield ChoiceField::new('role', 'Role')
             ->setChoices(array_combine(
-                array_map(fn (UserRole $r) => $r->label(), UserRole::cases()),
+                array_map(static fn (UserRole $r) => $r->label(), UserRole::cases()),
                 UserRole::cases(),
             ))
             ->onlyOnForms();
@@ -95,7 +98,7 @@ final class UserCrudController extends AbstractCrudController
         $perPage = 10;
 
         $result = $this->userRepository->searchPaginated(
-            $query !== '' ? $query : null,
+            '' !== $query ? $query : null,
             $twofa,
             $page,
             $perPage,
@@ -131,6 +134,7 @@ final class UserCrudController extends AbstractCrudController
             ->generateUrl();
 
         return $this->render('admin/users/index.html.twig', [
+            'sidebar_nav' => 'users',
             'users' => $result['items'],
             'total' => $total,
             'q' => $query,
@@ -138,6 +142,7 @@ final class UserCrudController extends AbstractCrudController
             'page' => $page,
             'per_page' => $perPage,
             'total_pages' => $totalPages,
+            'pagination_pages' => AdminPagination::compactPages($page, $totalPages),
             'edit_urls' => $editUrls,
             'urls' => [
                 'users_new' => $usersNewUrl,
@@ -165,14 +170,16 @@ final class UserCrudController extends AbstractCrudController
             ->generateUrl();
 
         if (!$this->isCsrfTokenValid('delete-user-'.$user->getId(), $token)) {
-            $this->addFlash('danger', 'Invalid CSRF token.');
+            $this->addFlash('danger', $this->siteUi->trans('flash.invalid_csrf'));
 
             return new RedirectResponse($indexUrl);
         }
 
         $this->em->remove($user);
         $this->em->flush();
-        $this->addFlash('success', \sprintf('User "%s" deleted.', $user->getName() ?: $user->getEmail()));
+        $this->addFlash('success', $this->siteUi->trans('flash.user_deleted', [
+            '%name%' => $user->getName() ?: $user->getEmail(),
+        ]));
 
         return new RedirectResponse($indexUrl);
     }
@@ -196,7 +203,7 @@ final class UserCrudController extends AbstractCrudController
         }
 
         $request = $this->requestStack->getCurrentRequest();
-        if ($request === null) {
+        if (null === $request) {
             return;
         }
 
@@ -208,7 +215,7 @@ final class UserCrudController extends AbstractCrudController
             }
         }
 
-        if (\is_string($plain) && $plain !== '') {
+        if (\is_string($plain) && '' !== $plain) {
             $entityInstance->setPassword($this->hasher->hashPassword($entityInstance, $plain));
         }
     }

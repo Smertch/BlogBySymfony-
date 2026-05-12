@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Post;
+use App\Entity\SiteTranslation;
 use App\Entity\User;
 use App\Repository\PostRepository;
 use App\Repository\UserRepository;
+use App\Service\SiteUiTranslator;
+use DateTimeImmutable;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -27,12 +30,13 @@ class DashboardController extends AbstractDashboardController
         private readonly UserRepository $users,
         private readonly PostRepository $posts,
         private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly SiteUiTranslator $siteUi,
     ) {
     }
 
     public function index(): Response
     {
-        $weekAgo = new \DateTimeImmutable('-7 days');
+        $weekAgo = new DateTimeImmutable('-7 days');
 
         $urls = [
             'users_index' => $this->adminUrlGenerator
@@ -53,7 +57,14 @@ class DashboardController extends AbstractDashboardController
                 ->generateUrl(),
         ];
 
+        $user = $this->getUser();
+        $dashboardLoggedInAs = $user instanceof UserInterface
+            ? $user->getUserIdentifier()
+            : $this->siteUi->trans('admin.guest');
+
         return $this->render('admin/dashboard.html.twig', [
+            'sidebar_nav' => 'dashboard',
+            'dashboard_logged_in_as' => $dashboardLoggedInAs,
             'stats' => [
                 'users_total' => $this->users->countAll(),
                 'users_with_2fa' => $this->users->countWithTwoFactor(),
@@ -81,6 +92,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Content');
         yield MenuItem::linkToCrud('Users', 'fa fa-users', User::class);
         yield MenuItem::linkToCrud('Posts', 'fa fa-newspaper', Post::class);
+        yield MenuItem::linkToCrud('Translations', 'fa fa-language', SiteTranslation::class);
     }
 
     public function configureUserMenu(UserInterface $user): UserMenu

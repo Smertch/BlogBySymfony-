@@ -1,31 +1,30 @@
 {% extends 'admin/_layout.html.twig' %}
 
-{% block title %}Users · Blog Admin{% endblock %}
-{% block topbar_title %}Users{% endblock %}
-{% block active_nav %}users{% endblock %}
+{% block title %}{{ ui('admin.users.title') }} · {{ ui('admin.nav.blog_admin') }}{% endblock %}
+{% block topbar_title %}{{ ui('admin.users.title') }}{% endblock %}
 
 {% block topbar_actions %}
     <a class="btn btn-primary-green" href="{{ urls.users_new }}">
-        <i class="bi bi-person-plus me-1"></i> Add User
+        <i class="bi bi-person-plus me-1"></i> {{ ui('admin.users.add') }}
     </a>
 {% endblock %}
 
-{% block content %}
+{% block admin_main %}
     {% include 'admin/_partials/flash_messages.html.twig' %}
 
     {% include 'admin/_partials/search_card.html.twig' with {
         action_url: urls.users_index,
         query: q,
-        query_placeholder: 'Search by name or email...',
+        query_placeholder: ui('admin.users.search_ph'),
         total: total,
         hidden_fields: {},
         filter: {
             name: 'twofa',
             value: twofa,
             options: [
-                { value: 'all',       label: 'All users' },
-                { value: 'confirmed', label: '2FA confirmed' },
-                { value: 'null',      label: '2FA not confirmed (Null)' },
+                { value: 'all',       label: ui('admin.filter.all_users') },
+                { value: 'confirmed', label: ui('admin.filter.2fa_confirmed') },
+                { value: 'null',      label: ui('admin.filter.2fa_null') },
             ],
         },
     } only %}
@@ -35,11 +34,11 @@
             <table class="table table-custom mb-0">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email address</th>
-                        <th>2FA confirmed</th>
-                        <th class="text-center">Actions</th>
+                        <th>{{ ui('admin.table.id') }}</th>
+                        <th>{{ ui('admin.table.name') }}</th>
+                        <th>{{ ui('admin.table.email') }}</th>
+                        <th>{{ ui('admin.table.2fa') }}</th>
+                        <th class="text-center">{{ ui('admin.table.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,7 +46,7 @@
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                No users found.
+                                {{ ui('admin.users.empty') }}
                             </td>
                         </tr>
                     {% else %}
@@ -60,21 +59,21 @@
                                     {% if u.twoFactorConfirmedAt %}
                                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
                                             <i class="bi bi-check-circle-fill me-1"></i>
-                                            Confirmed
+                                            {{ ui('admin.users.confirmed') }}
                                         </span>
                                     {% else %}
                                         <span class="badge-2fa-null">
                                             <i class="bi bi-dash-circle me-1"></i>
-                                            Null
+                                            {{ ui('admin.users.null_badge') }}
                                         </span>
                                     {% endif %}
                                 </td>
                                 <td class="text-center action-icons">
-                                    <a href="{{ edit_urls[u.id] }}" title="Edit user">
+                                    <a href="{{ edit_urls[u.id] }}" title="{{ ui('admin.action.edit_user') }}">
                                         <i class="bi bi-pencil-square me-3"></i>
                                     </a>
                                     <a href="#"
-                                       title="Delete user"
+                                       title="{{ ui('admin.action.delete_user') }}"
                                        class="js-delete-trigger"
                                        data-bs-toggle="modal"
                                        data-bs-target="#confirmDeleteModal"
@@ -95,6 +94,7 @@
             total: total,
             page: page,
             total_pages: total_pages,
+            pagination_pages: pagination_pages,
             route: 'admin_users_index',
             route_params: {
                 q: q,
@@ -108,8 +108,11 @@
         Showing all users · Access management
     </div>
 
-    {% include 'admin/_partials/delete_confirm_modal.html.twig' with { entity_label: 'user' } only %}
-{% endblock %}
+    {% include 'admin/_partials/delete_confirm_modal.html.twig' with {
+        entity_label: "user",
+    } only %}
+
+{% endblock admin_main %}
 
 {% block body_extra %}
     {% include 'admin/_partials/delete_trigger.html.twig' %}

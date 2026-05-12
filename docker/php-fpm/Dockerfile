@@ -32,5 +32,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 # Forward Docker env vars (e.g. DATABASE_URL) into PHP-FPM workers
 RUN sed -i 's/^;clear_env = no/clear_env = no/' /usr/local/etc/php-fpm.d/www.conf
 
+COPY docker-entrypoint.sh /usr/local/bin/blog-docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/blog-docker-entrypoint.sh
+
 EXPOSE 9000
+ENTRYPOINT ["/usr/local/bin/blog-docker-entrypoint.sh"]
 CMD ["php-fpm", "-F"]

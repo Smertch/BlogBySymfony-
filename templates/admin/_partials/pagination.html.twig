@@ -2,34 +2,48 @@
     Shared pagination footer for admin tables.
 
     Required:
-      total        – total number of results (int)
-      page         – current page (int)
-      total_pages  – total number of pages (int)
-      route        – Symfony route name (e.g. 'admin')
-      route_params – base params (the partial adds `page`)
+      total             – total number of results (int)
+      page              – current page (int)
+      total_pages       – total number of pages (int)
+      pagination_pages  – list from AdminPagination::compactPages() (ints + null for ellipsis)
+      route             – Symfony route name
+      route_params      – base params (the partial adds `page`)
+
+    Optional:
+      summary_left – plain-text line for the left column (replaces default counts)
 #}
-<div class="d-flex justify-content-between align-items-center p-3 bg-white border-top">
-    <div class="small text-muted">
-        {{ total }} result{{ total == 1 ? '' : 's' }}
-        {% if total_pages > 1 %}
-            · page {{ page }} of {{ total_pages }}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-3 bg-white border-top">
+    <div class="small text-muted flex-shrink-0">
+        {% if summary_left is defined and summary_left is not empty %}
+            {{ summary_left|raw }}
+        {% else %}
+            {{ total }} result{{ total == 1 ? '' : 's' }}
+            {% if total_pages > 1 %}
+                · page {{ page }} of {{ total_pages }}
+            {% endif %}
         {% endif %}
     </div>
 
     {% if total_pages > 1 %}
-        <nav>
-            <ul class="pagination pagination-custom mb-0">
-                <li class="page-item {{ page == 1 ? 'disabled' }}">
+        <nav class="ms-auto" aria-label="Pagination">
+            <ul class="pagination pagination-custom mb-0 flex-wrap justify-content-end">
+                <li class="page-item{% if page == 1 %} disabled{% endif %}">
                     <a class="page-link" href="{{ path(route, route_params|merge({ page: page - 1 })) }}">«</a>
                 </li>
 
-                {% for p in 1..total_pages %}
-                    <li class="page-item {{ p == page ? 'active' }}">
-                        <a class="page-link" href="{{ path(route, route_params|merge({ page: p })) }}">{{ p }}</a>
-                    </li>
+                {% for p in pagination_pages %}
+                    {% if p is null %}
+                        <li class="page-item disabled">
+                            <span class="page-link user-select-none">...</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item{% if p == page %} active{% endif %}">
+                            <a class="page-link" href="{{ path(route, route_params|merge({ page: p })) }}">{{ p }}</a>
+                        </li>
+                    {% endif %}
                 {% endfor %}
 
-                <li class="page-item {{ page == total_pages ? 'disabled' }}">
+                <li class="page-item{% if page == total_pages %} disabled{% endif %}">
                     <a class="page-link" href="{{ path(route, route_params|merge({ page: page + 1 })) }}">»</a>
                 </li>
             </ul>

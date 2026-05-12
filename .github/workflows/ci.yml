@@ -15,7 +15,8 @@ permissions:
 
 env:
     PHP_VERSION: '8.3'
-    PHP_EXTENSIONS: 'intl, pdo, pdo_pgsql, pgsql, mbstring, zip, bcmath, opcache, rdkafka'
+    # Omit rdkafka: PECL build often fails on ubuntu-latest; tests use in-memory Messenger; Kafka code paths are not executed in CI.
+    PHP_EXTENSIONS: 'intl, pdo, pdo_pgsql, pgsql, mbstring, zip, bcmath, opcache'
     COMPOSER_NO_INTERACTION: '1'
     COMPOSER_PROCESS_TIMEOUT: '0'
 
@@ -58,6 +59,9 @@ jobs:
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
 
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
+
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
 
@@ -97,6 +101,9 @@ jobs:
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
 
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
+
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
 
@@ -128,6 +135,9 @@ jobs:
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
 
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
+
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress
 
@@ -157,7 +167,8 @@ jobs:
                     --health-retries=12
 
         env:
-            DATABASE_URL: 'postgresql://user:password@127.0.0.1:5432/blog_test?serverVersion=16&charset=utf8'
+            # Base DB name must be "blog": config/packages/doctrine.yaml adds dbname_suffix "_test" in APP_ENV=test → blog_test (matches POSTGRES_DB).
+            DATABASE_URL: 'postgresql://user:password@127.0.0.1:5432/blog?serverVersion=16&charset=utf8'
             APP_ENV: test
             APP_SECRET: ci-test-secret
             APP_NAME: Symfony
@@ -186,6 +197,9 @@ jobs:
                   path: ${{ steps.composer-cache.outputs.dir }}
                   key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock', 'composer.json') }}
                   restore-keys: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-
+
+            - name: Create .env for Composer auto-scripts
+              run: cp .env.example .env
 
             - name: Install dependencies
               run: composer install --prefer-dist --no-progress

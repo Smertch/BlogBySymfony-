@@ -10,7 +10,9 @@ $finder = (new PhpCsFixer\Finder())
         'public/bundles',
     ])
     ->name('*.php')
-    ->notName('*.cache');
+    ->notName('*.cache')
+    // Symfony 7.4+ generates this file on cache warmup; do not lint or it fails CI after bin/console.
+    ->notPath('#^config/reference\\.php$#');
 
 return (new PhpCsFixer\Config())
     ->setRiskyAllowed(true)

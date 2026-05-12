@@ -90,14 +90,14 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
     {
         $qb = $this->createQueryBuilder('u');
 
-        if ($query !== null && $query !== '') {
+        if (null !== $query && '' !== $query) {
             $qb->andWhere('LOWER(u.name) LIKE :q OR LOWER(u.email) LIKE :q')
                 ->setParameter('q', '%'.mb_strtolower($query).'%');
         }
 
-        if ($twoFactorFilter === 'confirmed') {
+        if ('confirmed' === $twoFactorFilter) {
             $qb->andWhere('u.twoFactorConfirmedAt IS NOT NULL');
-        } elseif ($twoFactorFilter === 'null') {
+        } elseif ('null' === $twoFactorFilter) {
             $qb->andWhere('u.twoFactorConfirmedAt IS NULL');
         }
 

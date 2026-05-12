@@ -7,6 +7,7 @@ namespace App\Tests\Functional;
 use App\Entity\Comment;
 use App\Entity\Post;
 use App\Entity\PostLike;
+use LogicException;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -19,7 +20,6 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class PostControllerTest extends FunctionalTestCase
 {
-
     public function testGuestCannotCreatePostAndIsRedirectedToLogin(): void
     {
         // No login: posting to /posts must bounce to the login form.
@@ -349,7 +349,7 @@ final class PostControllerTest extends FunctionalTestCase
 
         return match ($tokenId) {
             'post_create' => $this->grabFirstToken($body, '/id="createPostModal".*?name="_token" value="([^"]+)"/s'),
-            default => throw new \LogicException('Unsupported token id: '.$tokenId),
+            default => throw new LogicException('Unsupported token id: '.$tokenId),
         };
     }
 

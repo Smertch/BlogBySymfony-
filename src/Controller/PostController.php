@@ -10,6 +10,7 @@ use App\Entity\PostLike;
 use App\Entity\User;
 use App\Repository\PostLikeRepository;
 use App\Repository\PostRepository;
+use App\Service\SiteUiTranslator;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,6 +28,7 @@ final class PostController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly PostRepository $postRepository,
         private readonly PostLikeRepository $postLikeRepository,
+        private readonly SiteUiTranslator $siteUi,
     ) {
     }
 
@@ -35,7 +37,7 @@ final class PostController extends AbstractController
     public function index(Request $request): Response
     {
         $query = trim((string) $request->query->get('q', ''));
-        $posts = $this->postRepository->feedSearch($query !== '' ? $query : null, self::FEED_LIMIT);
+        $posts = $this->postRepository->feedSearch('' !== $query ? $query : null, self::FEED_LIMIT);
 
         return $this->render('posts/index.html.twig', [
             'posts' => $posts,
@@ -48,7 +50,7 @@ final class PostController extends AbstractController
     public function create(Request $request): RedirectResponse
     {
         if (!$this->isCsrfTokenValid('post_create', (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
+            $this->addFlash('error', $this->siteUi->trans('flash.invalid_csrf'));
 
             return $this->redirectToRoute('home');
         }
@@ -56,8 +58,8 @@ final class PostController extends AbstractController
         $title = trim((string) $request->request->get('title', ''));
         $content = trim((string) $request->request->get('content', ''));
 
-        if ($title === '') {
-            $this->addFlash('error', 'Title cannot be empty.');
+        if ('' === $title) {
+            $this->addFlash('error', $this->siteUi->trans('flash.title_empty'));
 
             return $this->redirectToRoute('home');
         }
@@ -70,7 +72,7 @@ final class PostController extends AbstractController
         $this->em->persist($post);
         $this->em->flush();
 
-        $this->addFlash('success', 'Post published.');
+        $this->addFlash('success', $this->siteUi->trans('flash.post_published'));
 
         return $this->redirectToRoute('home', ['_fragment' => 'post-'.$post->getId()]);
     }
@@ -82,7 +84,7 @@ final class PostController extends AbstractController
         $this->denyAccessUnlessOwnerOrAdmin($post);
 
         if (!$this->isCsrfTokenValid('post_update_'.$post->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
+            $this->addFlash('error', $this->siteUi->trans('flash.invalid_csrf'));
 
             return $this->redirectToRoute('home');
         }
@@ -90,8 +92,8 @@ final class PostController extends AbstractController
         $title = trim((string) $request->request->get('title', ''));
         $content = trim((string) $request->request->get('content', ''));
 
-        if ($title === '') {
-            $this->addFlash('error', 'Title cannot be empty.');
+        if ('' === $title) {
+            $this->addFlash('error', $this->siteUi->trans('flash.title_empty'));
 
             return $this->redirectToRoute('home', ['_fragment' => 'post-'.$post->getId()]);
         }
@@ -100,7 +102,7 @@ final class PostController extends AbstractController
         $post->setContent($content);
         $this->em->flush();
 
-        $this->addFlash('success', 'Post updated.');
+        $this->addFlash('success', $this->siteUi->trans('flash.post_updated'));
 
         return $this->redirectToRoute('home', ['_fragment' => 'post-'.$post->getId()]);
     }
@@ -112,7 +114,7 @@ final class PostController extends AbstractController
         $this->denyAccessUnlessOwnerOrAdmin($post);
 
         if (!$this->isCsrfTokenValid('post_remove_'.$post->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
+            $this->addFlash('error', $this->siteUi->trans('flash.invalid_csrf'));
 
             return $this->redirectToRoute('home');
         }
@@ -120,7 +122,7 @@ final class PostController extends AbstractController
         $this->em->remove($post);
         $this->em->flush();
 
-        $this->addFlash('success', 'Post removed.');
+        $this->addFlash('success', $this->siteUi->trans('flash.post_removed'));
 
         return $this->redirectToRoute('home');
     }
@@ -130,7 +132,7 @@ final class PostController extends AbstractController
     public function toggleLike(Post $post, Request $request): RedirectResponse
     {
         if (!$this->isCsrfTokenValid('post_like_'.$post->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
+            $this->addFlash('error', $this->siteUi->trans('flash.invalid_csrf'));
 
             return $this->redirectToRoute('home');
         }
@@ -138,7 +140,7 @@ final class PostController extends AbstractController
         $user = $this->getAppUser();
         $existing = $this->postLikeRepository->findOneByPostAndUser($post, $user);
 
-        if ($existing !== null) {
+        if (null !== $existing) {
             $this->em->remove($existing);
             $this->em->flush();
 
@@ -165,14 +167,14 @@ final class PostController extends AbstractController
     public function addComment(Post $post, Request $request): RedirectResponse
     {
         if (!$this->isCsrfTokenValid('post_comment_'.$post->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
+            $this->addFlash('error', $this->siteUi->trans('flash.invalid_csrf'));
 
             return $this->redirectToRoute('home');
         }
 
         $body = trim((string) $request->request->get('body', ''));
-        if ($body === '') {
-            $this->addFlash('error', 'Comment cannot be empty.');
+        if ('' === $body) {
+            $this->addFlash('error', $this->siteUi->trans('flash.comment_empty'));
 
             return $this->redirectToRoute('home', ['_fragment' => 'post-'.$post->getId()]);
         }
@@ -198,7 +200,7 @@ final class PostController extends AbstractController
         }
 
         if (!$this->isCsrfTokenValid('comment_delete_'.$comment->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Invalid CSRF token.');
+            $this->addFlash('error', $this->siteUi->trans('flash.invalid_csrf'));
 
             return $this->redirectToRoute('home');
         }
@@ -207,9 +209,9 @@ final class PostController extends AbstractController
         $this->em->remove($comment);
         $this->em->flush();
 
-        $this->addFlash('success', 'Comment removed.');
+        $this->addFlash('success', $this->siteUi->trans('flash.comment_removed'));
 
-        return $this->redirectToRoute('home', $postId !== null ? ['_fragment' => 'post-'.$postId] : []);
+        return $this->redirectToRoute('home', null !== $postId ? ['_fragment' => 'post-'.$postId] : []);
     }
 
     private function denyAccessUnlessOwnerOrAdmin(Post $post): void
