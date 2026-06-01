@@ -15,7 +15,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.2",
         "easycorp/easyadmin-bundle": "^4.13",
-        "nelmio/api-doc-bundle": "^4.30",
+        "nelmio/api-doc-bundle": "^5.10",
         "scheb/2fa-bundle": "^7.6",
         "scheb/2fa-google-authenticator": "^7.6",
         "symfony/asset": "^7.1",
