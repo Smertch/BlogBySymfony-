@@ -14,7 +14,7 @@
         "doctrine/doctrine-bundle": "^2.13",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.2",
-        "easycorp/easyadmin-bundle": "^4.13",
+        "easycorp/easyadmin-bundle": "^5.5",
         "nelmio/api-doc-bundle": "^4.30",
         "scheb/2fa-bundle": "^7.6",
         "scheb/2fa-google-authenticator": "^7.6",
